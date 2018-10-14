@@ -1,0 +1,9 @@
+{
+  "states": [
+    "cool"
+  ],
+  "links": {
+    "setup": ["init"],
+    "init": ["setup"]
+  }
+}
