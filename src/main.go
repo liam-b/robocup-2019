@@ -1,64 +1,59 @@
 package main
 
-import "fmt"
+import "os"
 
+var program Program
 var machine StateMachine
-var thing int
+var logger Logger
 
 func main() {
+  program = Program{setup: setup, start: start, loop: loop, exit: exit}.new()
+  logger = Logger{level: DebugLevel}.new()
   machine = StateMachine{}.new()
-  // logger := Logger{machine: &machine}.new()
 
-  machine.add("init")
-  machine.add("loop")
+  program.init()
+}
 
-  machine.link("init").to("loop")
-  machine.link("loop").to("init")
+func setup() {
+  logger.info("setting up states")
+}
 
-  // machine.transition("setup")
-  // fmt.Println(machine.can("init"))
-  // fmt.Println(machine.state)
-  // fmt.Println(machine.is("setup.*"))
-  //
-  // logger.log("hi")
-  // logger.info("hi")
-  // logger.warn("hi")
-  // logger.error("hi")
+func start() {
+  logger.info("program started")
+  machine.add(State{name: "initial", transitions: []string{"loop"},
+    enter: func() {
+      // logger.debug("entered initial");
+    },
+    update: func() {
+      // logger.debug("updated initial");
+    },
+    exit: func() {
+      // logger.debug("exited initial");
+    },
+  })
 
-  thing = 0
+  machine.add(State{name: "loop", transitions: []string{""},
+    enter: func() {
+      // logger.debug("entered loop");
+    },
+    update: func() {
+      // logger.debug("updated loop");
+    },
+    exit: func() {
+      // logger.debug("exited loop");
+    },
+  })
 
   machine.transition("loop")
-
-  loop()
+  machine.update()
 }
 
 func loop() {
-  if machine.before("loop") {
-    fmt.Println("machine.before(\"loop\")")
-    thing = 0
-  }
-  if machine.is("loop") {
-    fmt.Println("machine.is(\"loop\")")
-    thing += 1
-    if thing >= 10 {
-      fmt.Println("machine.transition(\"init\")")
-      machine.transition("init")
-    }
-  }
-  if machine.after("loop") {
-    fmt.Println("machine.after(\"loop\")")
-  }
-
-  // loop()
+  logger.trace("looping")
+  program.stop()
 }
 
-// thing = 0
-// machine.transition("state")
-//
-// if machine.is("state") {
-//   thing += 1
-//   if thing > 10 {
-//     doSomething()
-//     machine.transition("other")
-//   }
-// }
+func exit() {
+  logger.info("program exited")
+  os.Exit(1)
+}

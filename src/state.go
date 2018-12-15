@@ -1,122 +1,71 @@
 package main
 
-import "strings"
+type StateEvent string; const (
+  EnterEvent StateEvent = ">"
+  UpdateEvent StateEvent = "-"
+  ExitEvent StateEvent = "<"
 
-type StateMachineTemplate struct {
-  states []string
-  links map[string][]string
+  OutsideEvent StateEvent = "."
+  InternalEvent StateEvent = "!"
+)
+
+type State struct {
+  name string
+  transitions []string
+  enter func()
+  update func()
+  exit func()
 }
 
 type StateMachine struct {
+  logger *Logger
   state string
-  beforeState string
-  afterState string
-  states []string
-  links map[string][]string
-  nextLinkSources []string
-  nextLinkDestination string
+  states map[string]State
+  event StateEvent
 }
 
-func (stateMachine StateMachine) new() StateMachine {
-  stateMachine.links = make(map[string][]string)
-  stateMachine.beforeState = ""
-  stateMachine.afterState = ""
-  return stateMachine
+func (machine StateMachine) new() StateMachine {
+  machine.states = make(map[string]State)
+  return machine
 }
 
-func (stateMachine *StateMachine) add(state string) {
-  stateMachine.states = append(stateMachine.states, state)
-  if stateMachine.state == "" {
-    stateMachine.afterState = stateMachine.state
-    stateMachine.beforeState = state
-    stateMachine.state = state
+func (machine *StateMachine) transition(destination string) {
+  if _, exists := machine.states[destination]; !exists {
+    machine.event = InternalEvent
+    logger.warn("attempted transition to unknown state")
+    machine.event = OutsideEvent
+  } else if contains(machine.states[machine.state].transitions, destination) {
+    machine.event = ExitEvent
+    machine._log("exited")
+    machine.states[machine.state].exit()
+
+    machine.state = destination
+
+    machine.event = EnterEvent
+    machine._log("entered")
+    machine.states[machine.state].enter()
+    machine.event = OutsideEvent
   }
 }
 
-func (stateMachine *StateMachine) include(template StateMachineTemplate) {
-  stateMachine.states = append(stateMachine.states, template.states...)
-  for destination, sources := range template.links {
-    stateMachine.links[destination] = append(stateMachine.links[destination], sources...)
+func (machine *StateMachine) update() {
+  machine.event = UpdateEvent
+  machine._log("updated")
+  machine.states[machine.state].update()
+  machine.event = OutsideEvent
+}
+
+func (machine *StateMachine) add(state State) {
+  machine.states[state.name] = state
+  if machine.state == "" {
+    machine.state = state.name
+    machine.event = EnterEvent
+    machine._log("entered")
+    machine.states[machine.state].enter()
+    machine.event = OutsideEvent
   }
 }
 
-func (stateMachine *StateMachine) link(links ...string) *StateMachine {
-  stateMachine.nextLinkDestination = links[0]
-  stateMachine.nextLinkSources = links
-  return stateMachine
-}
-
-func (stateMachine *StateMachine) to(destination string) {
-  if contains(stateMachine.states, destination) && len(stateMachine.nextLinkSources) != 0 {
-    stateMachine.links[destination] = append(stateMachine.links[destination], stateMachine.nextLinkSources...)
-  }
-  stateMachine.nextLinkDestination = ""
-  stateMachine.nextLinkSources = stateMachine.nextLinkSources[:0]
-}
-
-func (stateMachine *StateMachine) from(sources ...string) {
-  if contains(stateMachine.states, stateMachine.nextLinkDestination) && stateMachine.nextLinkDestination != "" {
-    stateMachine.links[stateMachine.nextLinkDestination] = append(stateMachine.links[stateMachine.nextLinkDestination], sources...)
-  }
-  stateMachine.nextLinkDestination = ""
-  stateMachine.nextLinkSources = stateMachine.nextLinkSources[:0]
-}
-
-func (stateMachine *StateMachine) set(state string) {
-  if contains(stateMachine.states, state) {
-    stateMachine.afterState = stateMachine.state
-    stateMachine.beforeState = state
-    stateMachine.state = state
-  }
-}
-
-func (stateMachine StateMachine) is(state string) bool {
-  if strings.HasSuffix(state, ".*") && strings.HasPrefix(stateMachine.state, strings.TrimSuffix(state, ".*")) {
-    return true
-  }
-  return stateMachine.state == state
-}
-
-func (stateMachine *StateMachine) before(state string) bool {
-  isBefore := stateMachine.beforeState == state
-  if strings.HasSuffix(state, ".*") && strings.HasPrefix(stateMachine.beforeState, strings.TrimSuffix(state, ".*")) {
-    return true
-  }
-
-  if isBefore {
-    stateMachine.beforeState = ""
-  }
-  return isBefore
-}
-
-func (stateMachine *StateMachine) after(state string) bool {
-  isAfter := stateMachine.afterState == state
-  if strings.HasSuffix(state, ".*") && strings.HasPrefix(stateMachine.afterState, strings.TrimSuffix(state, ".*")) {
-    return true
-  }
-
-  if isAfter {
-    stateMachine.afterState = ""
-  }
-  return isAfter
-}
-
-func (stateMachine *StateMachine) transition(destination string) bool {
-  if contains(stateMachine.states, destination) && stateMachine.can(destination) {
-    stateMachine.afterState = stateMachine.state
-    stateMachine.beforeState = destination
-    stateMachine.state = destination
-    return true
-  }
-  return false
-}
-
-func (stateMachine StateMachine) can(destination string) bool {
-  for _, source := range stateMachine.links[destination] {
-    if strings.HasSuffix(source, ".*") && strings.HasPrefix(stateMachine.state, strings.TrimSuffix(source, ".*")) {
-      return true
-    }
-  }
-
-  return contains(stateMachine.links[destination], stateMachine.state)
+func (machine *StateMachine) _log(text string) {
+  logger.state(text + " " + machine.state)
 }
