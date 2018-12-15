@@ -3,12 +3,14 @@ package main
 import "strings"
 
 type StateMachineTemplate struct {
-  States []string
-  Links map[string][]string
+  states []string
+  links map[string][]string
 }
 
 type StateMachine struct {
   state string
+  beforeState string
+  afterState string
   states []string
   links map[string][]string
   nextLinkSources []string
@@ -17,19 +19,23 @@ type StateMachine struct {
 
 func (stateMachine StateMachine) new() StateMachine {
   stateMachine.links = make(map[string][]string)
+  stateMachine.beforeState = ""
+  stateMachine.afterState = ""
   return stateMachine
 }
 
 func (stateMachine *StateMachine) add(state string) {
   stateMachine.states = append(stateMachine.states, state)
   if stateMachine.state == "" {
+    stateMachine.afterState = stateMachine.state
+    stateMachine.beforeState = state
     stateMachine.state = state
   }
 }
 
 func (stateMachine *StateMachine) include(template StateMachineTemplate) {
-  stateMachine.states = append(stateMachine.states, template.States...)
-  for destination, sources := range template.Links {
+  stateMachine.states = append(stateMachine.states, template.states...)
+  for destination, sources := range template.links {
     stateMachine.links[destination] = append(stateMachine.links[destination], sources...)
   }
 }
@@ -58,6 +64,8 @@ func (stateMachine *StateMachine) from(sources ...string) {
 
 func (stateMachine *StateMachine) set(state string) {
   if contains(stateMachine.states, state) {
+    stateMachine.afterState = stateMachine.state
+    stateMachine.beforeState = state
     stateMachine.state = state
   }
 }
@@ -69,8 +77,34 @@ func (stateMachine StateMachine) is(state string) bool {
   return stateMachine.state == state
 }
 
+func (stateMachine *StateMachine) before(state string) bool {
+  isBefore := stateMachine.beforeState == state
+  if strings.HasSuffix(state, ".*") && strings.HasPrefix(stateMachine.beforeState, strings.TrimSuffix(state, ".*")) {
+    return true
+  }
+
+  if isBefore {
+    stateMachine.beforeState = ""
+  }
+  return isBefore
+}
+
+func (stateMachine *StateMachine) after(state string) bool {
+  isAfter := stateMachine.afterState == state
+  if strings.HasSuffix(state, ".*") && strings.HasPrefix(stateMachine.afterState, strings.TrimSuffix(state, ".*")) {
+    return true
+  }
+
+  if isAfter {
+    stateMachine.afterState = ""
+  }
+  return isAfter
+}
+
 func (stateMachine *StateMachine) transition(destination string) bool {
   if contains(stateMachine.states, destination) && stateMachine.can(destination) {
+    stateMachine.afterState = stateMachine.state
+    stateMachine.beforeState = destination
     stateMachine.state = destination
     return true
   }
@@ -85,13 +119,4 @@ func (stateMachine StateMachine) can(destination string) bool {
   }
 
   return contains(stateMachine.links[destination], stateMachine.state)
-}
-
-func contains(s []string, e string) bool {
-  for _, a := range s {
-    if a == e {
-      return true
-    }
-  }
-  return false
 }
