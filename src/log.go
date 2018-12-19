@@ -5,8 +5,12 @@ import "strconv"
 import "strings"
 import "time"
 
+const TEXT_HIDE = "\x1b[8m"
+const TEXT_SHOW = "\x1b[28m"
 const TEXT_PURPLE = "\x1b[35m"
 const TEXT_BOLD = "\x1b[1m"
+const TEXT_UNDERLINE = "\x1b[4m"
+const TEXT_ITALIC = "\x1b[3m"
 const TEXT_BLUE = "\x1b[34m"
 const TEXT_CYAN = "\x1b[36m"
 const TEXT_GREEN = "\x1b[32m"
@@ -20,8 +24,8 @@ type LogLevel string; const (
   StateLevel LogLevel = "state"
   TraceLevel LogLevel = "trace"
   DebugLevel LogLevel = "debug"
-  InfoLevel LogLevel = "info"
-  WarningLevel LogLevel = "warn"
+  InfoLevel LogLevel = " info"
+  WarningLevel LogLevel = " warn"
   ErrorLevel LogLevel = "error"
 )
 
@@ -43,42 +47,46 @@ func (logger Logger) new() Logger {
 
 func (logger *Logger) state(text string) {
   if logger.levelInt >= 5 {
-    logger._print(StateLevel, TEXT_WHITE, text)
+    logger._print(StateLevel, TEXT_BOLD + TEXT_CYAN, text)
   }
 }
 
 func (logger *Logger) trace(text string) {
   if logger.levelInt >= 4 {
-    logger._print(TraceLevel, TEXT_WHITE, text)
+    logger._print(TraceLevel, TEXT_BOLD + TEXT_WHITE, text)
   }
 }
 
 func (logger *Logger) debug(text string) {
   if logger.levelInt >= 3 {
-    logger._print(DebugLevel, TEXT_GREEN, text)
+    logger._print(DebugLevel, TEXT_BOLD + TEXT_GREEN, text)
   }
 }
 
 func (logger *Logger) info(text string) {
   if logger.levelInt >= 2 {
-    logger._print(InfoLevel, TEXT_BLUE, text)
+    logger._print(InfoLevel, TEXT_BOLD + TEXT_BLUE, text)
   }
 }
 
 func (logger *Logger) warn(text string) {
   if logger.levelInt >= 1 {
-    logger._print(WarningLevel, TEXT_YELLOW, text)
+    logger._print(WarningLevel, TEXT_BOLD + TEXT_YELLOW, text)
   }
 }
 
 func (logger *Logger) error(text string) {
   if logger.levelInt >= 0 {
-    logger._print(ErrorLevel, TEXT_RED, text)
+    logger._print(ErrorLevel, TEXT_BOLD + TEXT_RED, text)
   }
 }
 
+// func (logger *Logger) red(text string) string {
+//   return TEXT_UNDERLINE + text + TEXT_END
+// }
+
 func (logger *Logger) _print(level LogLevel, color string, text string) {
-  fmt.Println(TEXT_BLACK + logger._timeDifference() + " [" + pad(strconv.Itoa(logger.counter), 5) + "]" + TEXT_END + " " + TEXT_BOLD + color + strings.ToUpper((string)(level)) + TEXT_END + " " + TEXT_PURPLE + logger._state() + TEXT_END + " " + text)
+  fmt.Println(TEXT_BLACK + logger._timeDifference() + " [" + pad(strconv.Itoa(logger.counter), 5) + "]" + TEXT_END + " " + color + strings.ToUpper((string)(level)) + TEXT_END + " " + TEXT_PURPLE + logger._state() + TEXT_END + " " + text)
   logger.counter += 1
 }
 

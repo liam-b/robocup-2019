@@ -5,8 +5,8 @@ type StateEvent string; const (
   UpdateEvent StateEvent = "-"
   ExitEvent StateEvent = "<"
 
-  OutsideEvent StateEvent = "."
-  InternalEvent StateEvent = "!"
+  InternalEvent StateEvent = ":"
+  ExternalEvent StateEvent = "."
 )
 
 type State struct {
@@ -33,39 +33,61 @@ func (machine *StateMachine) transition(destination string) {
   if _, exists := machine.states[destination]; !exists {
     machine.event = InternalEvent
     logger.warn("attempted transition to unknown state")
-    machine.event = OutsideEvent
-  } else if contains(machine.states[machine.state].transitions, destination) {
-    machine.event = ExitEvent
-    machine._log("exited")
-    machine.states[machine.state].exit()
-
-    machine.state = destination
-
-    machine.event = EnterEvent
-    machine._log("entered")
-    machine.states[machine.state].enter()
-    machine.event = OutsideEvent
+    machine.event = ExternalEvent
+  } else {
+    if contains(machine.states[machine.state].transitions, destination) {
+      machine._callExit()
+      machine.state = destination
+      machine._callEnter()
+    } else {
+      machine.event = InternalEvent
+      logger.state("attempted illegal transition")
+      machine.event = ExternalEvent
+    }
   }
 }
 
 func (machine *StateMachine) update() {
-  machine.event = UpdateEvent
-  machine._log("updated")
-  machine.states[machine.state].update()
-  machine.event = OutsideEvent
+  machine._callUpdate()
 }
 
 func (machine *StateMachine) add(state State) {
+  logger.state("adding state " + state.name)
   machine.states[state.name] = state
   if machine.state == "" {
+    logger.state("setting intital state to " + state.name)
     machine.state = state.name
-    machine.event = EnterEvent
-    machine._log("entered")
-    machine.states[machine.state].enter()
-    machine.event = OutsideEvent
+    machine._callEnter()
   }
 }
 
-func (machine *StateMachine) _log(text string) {
+func (machine *StateMachine) _logTransition(text string) {
   logger.state(text + " " + machine.state)
+}
+
+func (machine *StateMachine) _callEnter() {
+  machine.event = EnterEvent
+  machine._logTransition("entered")
+  if machine.states[machine.state].enter != nil {
+    machine.states[machine.state].enter()
+  }
+  machine.event = ExternalEvent
+}
+
+func (machine *StateMachine) _callUpdate() {
+  machine.event = UpdateEvent
+  machine._logTransition("updated")
+  if machine.states[machine.state].update != nil {
+    machine.states[machine.state].update()
+  }
+  machine.event = ExternalEvent
+}
+
+func (machine *StateMachine) _callExit() {
+  machine.event = ExitEvent
+  machine._logTransition("exited")
+  if machine.states[machine.state].exit != nil {
+    machine.states[machine.state].exit()
+  }
+  machine.event = ExternalEvent
 }

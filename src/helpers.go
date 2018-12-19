@@ -1,5 +1,20 @@
 package main
 
+import "fmt"
+import "os"
+import "os/signal"
+
+func setupInterrupt() {
+  stop := make(chan os.Signal, 1)
+  signal.Notify(stop, os.Interrupt)
+  go func() {
+    <-stop
+    fmt.Println("")
+    logger.debug("caught ctrl-c")
+    program.stop()
+  }()
+}
+
 func min(x, y int) int {
   if x < y { return x }
   return y

@@ -11,6 +11,7 @@ for f in $FILES ; do
   FILE_WITHOUT_SUFFIX=${FILE%%.*}
   cp $f ./pkg/${FILE_WITHOUT_SUFFIX}-${RANDOM}.go
 done
+# perl -i -pe 's/_main/main/g' ./pkg/* 
 echo "> \033[0;32mbuilding\033[0;0m \033[0;30m"$GO_BUILD_COUNT"\033[0;0m"
 # env GOOS=linux GOARCH=arm GOARM=5 go build -o robocup pkg/*
 env go build -o robocup pkg/*.go
