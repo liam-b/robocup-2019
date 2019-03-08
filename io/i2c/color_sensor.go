@@ -1,4 +1,4 @@
-package io
+package i2c
 
 import (
 	"github.com/liam-b/robocup-2019/logger"
@@ -25,47 +25,62 @@ type ColorSensor struct {
 	Address uint8
 	Multiplexer *Multiplexer
 	Channel uint
-	i2cDevice MultiplexedI2CDevice
+	device MultiplexedDevice
+
+	cachedClearValue int
+	cachedRedValues int
+	cachedGreenValues int
+	cachedBlueValues int
 }
 
 func (sensor ColorSensor) New() ColorSensor {
 	sensor.Address = COLOR_SENSOR_ADDRESS
-	sensor.i2cDevice = MultiplexedI2CDevice{Address: sensor.Address, Multiplexer: sensor.Multiplexer, Channel: sensor.Channel}.New()
+	sensor.device = MultiplexedDevice{Address: sensor.Address, Multiplexer: sensor.Multiplexer, Channel: sensor.Channel}.New()
 	return sensor
 }
 
 func (sensor ColorSensor) Setup() {
-	err := sensor.i2cDevice.WriteByte(COLOR_SENSOR_ENABLE_REGISTER, 0x03)
+	err := sensor.device.WriteByte(COLOR_SENSOR_ENABLE_REGISTER, 0x03)
 	if err != nil {
 		logger.Error("color sensor: failed to setup sensor")
+		return
 	}
 
-	err = sensor.i2cDevice.WriteByte(COLOR_SENSOR_TIMING_REGISTER, 0xf2)
+	err = sensor.device.WriteByte(COLOR_SENSOR_TIMING_REGISTER, 0xf2)
 	if err != nil {
 		logger.Error("color sensor: failed to setup sensor")
+		return
 	}
+}
+
+func (sensor ColorSensor) Update() {
+	sensor.cachedClearValue = int(sensor.getClearValue(COLOR_SENSOR_CLEAR_REGISTER))
+	sensor.cachedRedValues = int(sensor.getColorValue(COLOR_SENSOR_RED_REGISTER))
+	sensor.cachedGreenValues = int(sensor.getColorValue(COLOR_SENSOR_GREEN_REGISTER))
+	sensor.cachedBlueValues = int(sensor.getColorValue(COLOR_SENSOR_BLUE_REGISTER))
 }
 
 func (sensor ColorSensor) Intensity() int {
-	return sensor.readClearValue(COLOR_SENSOR_CLEAR_REGISTER)
+	return sensor.cachedClearValue
 }
 
 func (sensor ColorSensor) RGB() (int, int, int) {
-	red := sensor.readColorValue(COLOR_SENSOR_RED_REGISTER)
-	green := sensor.readColorValue(COLOR_SENSOR_GREEN_REGISTER)
-	blue := sensor.readColorValue(COLOR_SENSOR_BLUE_REGISTER)
+	red := sensor.cachedRedValues
+	green := sensor.cachedGreenValues
+	blue := sensor.cachedBlueValues
 
-	return int(red), int(green), int(blue)
+	return red, green, blue
 }
 
 func (sensor ColorSensor) Destroy() {
-	sensor.i2cDevice.Destroy()
+	sensor.device.Destroy()
 }
 
-func (sensor ColorSensor) readClearValue(register uint8) int {
-	data, err := sensor.i2cDevice.ReadWord(register)
+func (sensor ColorSensor) getClearValue(register uint8) int {
+	data, err := sensor.device.ReadWord(register)
 	if err != nil {
 		logger.Error("color sensor: failed to read clear value")
+		return 0
 	}
 
 	value := float64(data) * COLOR_SENSOR_CLEAR_SCALE
@@ -73,10 +88,11 @@ func (sensor ColorSensor) readClearValue(register uint8) int {
 	return int(value)
 }
 
-func (sensor ColorSensor) readColorValue(register uint8) int {
-	data, err := sensor.i2cDevice.ReadWord(register)
+func (sensor ColorSensor) getColorValue(register uint8) int {
+	data, err := sensor.device.ReadWord(register)
 	if err != nil {
 		logger.Error("color sensor: failed to read color value")
+		return 0
 	}
 
 	value := float64(data) * COLOR_SENSOR_COLOR_SCALE
