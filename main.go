@@ -14,13 +14,17 @@ package main
 */
 
 import (
-	"github.com/liam-b/robocup-2019/behaviours"
+	"github.com/liam-b/robocup-2019/behaviour"
+	"github.com/liam-b/robocup-2019/helper"
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/logger"
 	"github.com/liam-b/robocup-2019/state_machine"
+	"github.com/liam-b/robocup-2019/io/lego"
 
-	"runtime"
-	"strconv"
+	"time"
+
+	// "runtime"
+	// "strconv"
 )
 
 func main() {
@@ -32,18 +36,73 @@ func main() {
 func start() {
 	logger.Info("started")
 
-	logger.Debug("GOMAXPROCS: " + strconv.Itoa(runtime.GOMAXPROCS(0)))
+	// logger.Debug("GOMAXPROCS: " + strconv.Itoa(runtime.GOMAXPROCS(0)))
 
-	behaviours.Start()
+	bot.LeftDriveMotor = lego.Motor{Port: lego.PORT_MA}.New()
+	bot.RightDriveMotor = lego.Motor{Port: lego.PORT_MD}.New()
+	bot.ClawMotor = lego.Motor{Port: lego.PORT_MB}.New()
+	bot.ClawElevatorMotor = lego.Motor{Port: lego.PORT_MC}.New()
+
+	bot.Setup()
+	helper.Setup()
+	behaviour.Setup()
+
+	time.Sleep(time.Second)
+
+	// helper.CloseClaw()
+	// time.Sleep(time.Second)
+	// helper.RaiseClaw()
+	// time.Sleep(time.Second * 2)
+	// helper.RunToPositionDrive(300, 300)
+	// time.Sleep(time.Second * 2)
+	// helper.ReleaseClaw()
+	// time.Sleep(time.Second)
+	// helper.OpenClaw()
+	// time.Sleep(time.Second * 1)
+	// helper.RunToPositionDrive(0, 300)
+	// time.Sleep(time.Second * 1)
+	// helper.LowerClaw()
+	// time.Sleep(time.Second * 3)
+
+	// helper.RaiseClaw()
+	// time.Sleep(time.Second * 2)
+	// helper.RunToPositionDrive(300, 300)
+	// time.Sleep(time.Second * 2)
+	// helper.CloseClaw()
+	// time.Sleep(time.Second)
+	// helper.RunToPositionDrive(0, 300)
+	// time.Sleep(time.Second * 2)
+	// helper.LowerClaw()
+	// time.Sleep(time.Second * 2)
+	// helper.OpenClaw()
+
+	// helper.RunToPositionDrive(200, 200)
+	// time.Sleep(time.Second * 2)
+	// helper.CloseClaw()
+	// time.Sleep(time.Second * 2)
+	// helper.RaiseClaw()
+	// time.Sleep(time.Second * 2)
+	// helper.RunToPositionDrive(450, 200)
+	// time.Sleep(time.Second * 4)
+	// helper.OpenClaw()
+	// time.Sleep(time.Second * 2)
+	// helper.LowerClaw()
+	// time.Sleep(time.Second * 2)
+	// helper.RunToPositionDrive(0, 200)
+	// time.Sleep(time.Second * 3)
 }
 
 func loop(frequency float64, cycle int64) {
 }
 
 func update(frequency float64, cycle int64) {
-	bot.UpdateSensorCaches()
+	bot.UpdateCaches()
 }
 
 func exit() {
 	logger.Info("exiting")
+
+	behaviour.Cleanup()
+	helper.Cleanup()
+	bot.Cleanup()
 }

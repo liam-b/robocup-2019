@@ -2,7 +2,7 @@ package lego
 
 import (
 	"io/ioutil"
-	"os"
+  "os"
 )
 
 func ReadFile(path string) (string, error) {

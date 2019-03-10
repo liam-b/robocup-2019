@@ -1,4 +1,4 @@
-package behaviours
+package behaviour
 
 import "github.com/liam-b/robocup-2019/logger"
 
@@ -10,13 +10,22 @@ var behaviours = []Behaviour{
 }
 
 type Behaviour struct {
-	setup func()
+	Setup func()
+	Cleanup func()
 }
 
-func Start() {
+func Setup() {
 	logger.Trace("running setup for behaviours")
 
 	for _, behaviour := range behaviours {
-		behaviour.setup()
+		behaviour.Setup()
+	}
+}
+
+func Cleanup() {
+	logger.Trace("running cleanup for behaviours")
+
+	for _, behaviour := range behaviours {
+		behaviour.Cleanup()
 	}
 }

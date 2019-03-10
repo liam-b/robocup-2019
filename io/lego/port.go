@@ -4,8 +4,7 @@ const (
 	PORT_PATH = "/sys/class/lego-port/"
 )
 
-type PortAddress string
-const (
+type PortAddress string; const (
 	PORT_S1 PortAddress = "spi0.1:S1"
 	PORT_S2 PortAddress = "spi0.1:S2"
 	PORT_S3 PortAddress = "spi0.1:S3"
