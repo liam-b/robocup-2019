@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	MAIN_CYCLE_FREQUENCY = 30
+	MAIN_CYCLE_FREQUENCY = 2
 	IO_CYCLE_FREQUENCY = 1
 )
 

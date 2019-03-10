@@ -22,9 +22,7 @@ import (
 	"github.com/liam-b/robocup-2019/io/lego"
 
 	"time"
-
-	// "runtime"
-	// "strconv"
+	"runtime"
 )
 
 func main() {
@@ -36,8 +34,9 @@ func main() {
 func start() {
 	logger.Info("started")
 
-	// logger.Debug("GOMAXPROCS: " + strconv.Itoa(runtime.GOMAXPROCS(0)))
+	logger.Debug("max goroutines:", runtime.GOMAXPROCS(0))
 
+	logger.Debug("initialising io devices")
 	bot.LeftDriveMotor = lego.Motor{Port: lego.PORT_MA}.New()
 	bot.RightDriveMotor = lego.Motor{Port: lego.PORT_MD}.New()
 	bot.ClawMotor = lego.Motor{Port: lego.PORT_MB}.New()

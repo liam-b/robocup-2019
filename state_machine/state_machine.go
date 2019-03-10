@@ -27,14 +27,17 @@ var (
 	Event   string
 )
 
-func Init() {}
+func Init() {
+	Add(State{Name: "init", Transitions: []string{"*"}})
+	Add(State{Name: "exit", Transitions: []string{}})
+}
 
 func Transition(destination string) {
 	if _, exists := States[destination]; !exists {
 		setEvent(internalEvent)
 		logger.Warn("attempted transition to unknown state")
 		setEvent(outsideEvent)
-	} else if contains(States[Current].Transitions, destination) {
+	} else if contains(States[Current].Transitions, destination) || contains(States[Current].Transitions, "*") {
 		setEvent(exitEvent)
 		logTransition("exited")
 		if (States[Current].Exit != nil) {
