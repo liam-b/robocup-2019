@@ -16,7 +16,9 @@ func Setup() {
 	logger.Trace("running setup for helpers")
 
 	for _, helper := range helpers {
-		helper.Setup()
+		if helper.Setup != nil {
+			helper.Setup()
+		}
 	}
 }
 
@@ -24,6 +26,8 @@ func Cleanup() {
 	logger.Trace("running cleanup for helpers")
 
 	for _, helper := range helpers {
-		helper.Cleanup()
+		if helper.Cleanup != nil {
+			helper.Cleanup()
+		}
 	}
 }
