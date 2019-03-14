@@ -1,18 +1,5 @@
 package main
 
-/*
-
-// Sensors //
-- i2c color sensor x4
-- i2c distance sensor x1
-- i2c compass sensor x1
-
-// Motors //
-- ev3 large motor x2
-- ev3 medium motor x1
-
-*/
-
 import (
 	"github.com/liam-b/robocup-2019/behaviour"
 	"github.com/liam-b/robocup-2019/helper"
@@ -46,34 +33,36 @@ func start() {
 	helper.Setup()
 	behaviour.Setup()
 
+	state_machine.Transition("follow_line")
+
 	time.Sleep(time.Second)
 
-	// helper.CloseClaw()
-	// time.Sleep(time.Second)
-	// helper.RaiseClaw()
-	// time.Sleep(time.Second * 2)
-	// helper.RunToPositionDrive(300, 300)
-	// time.Sleep(time.Second * 2)
-	// helper.ReleaseClaw()
-	// time.Sleep(time.Second)
-	// helper.OpenClaw()
-	// time.Sleep(time.Second * 1)
-	// helper.RunToPositionDrive(0, 300)
-	// time.Sleep(time.Second * 1)
-	// helper.LowerClaw()
-	// time.Sleep(time.Second * 3)
+	helper.CloseClaw()
+	time.Sleep(time.Second)
+	helper.RaiseClaw()
+	time.Sleep(time.Second * 2)
+	helper.RunToPositionDrive(300, 300)
+	time.Sleep(time.Second * 2)
+	helper.ReleaseClaw()
+	time.Sleep(time.Second)
+	helper.OpenClaw()
+	time.Sleep(time.Second * 1)
+	helper.RunToPositionDrive(0, 300)
+	time.Sleep(time.Second * 1)
+	helper.LowerClaw()
+	time.Sleep(time.Second * 3)
 
-	// helper.RaiseClaw()
-	// time.Sleep(time.Second * 2)
-	// helper.RunToPositionDrive(300, 300)
-	// time.Sleep(time.Second * 2)
-	// helper.CloseClaw()
-	// time.Sleep(time.Second)
-	// helper.RunToPositionDrive(0, 300)
-	// time.Sleep(time.Second * 2)
-	// helper.LowerClaw()
-	// time.Sleep(time.Second * 2)
-	// helper.OpenClaw()
+	helper.RaiseClaw()
+	time.Sleep(time.Second * 2)
+	helper.RunToPositionDrive(300, 300)
+	time.Sleep(time.Second * 2)
+	helper.CloseClaw()
+	time.Sleep(time.Second)
+	helper.RunToPositionDrive(0, 300)
+	time.Sleep(time.Second * 2)
+	helper.LowerClaw()
+	time.Sleep(time.Second * 2)
+	helper.OpenClaw()
 
 	// helper.RunToPositionDrive(200, 200)
 	// time.Sleep(time.Second * 2)

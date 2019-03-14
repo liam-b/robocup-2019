@@ -3,6 +3,7 @@ package bot
 import (
 	"github.com/liam-b/robocup-2019/io/lego"
 	"github.com/liam-b/robocup-2019/io/i2c"
+	"github.com/liam-b/robocup-2019/logger"
 
 	"fmt"
 	"os"
@@ -51,10 +52,11 @@ func Init(_Start func(), _Exit func(), _MainCycle func(float64, int64), _IOCycle
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	go func() {
-			for _ = range stop {
-				fmt.Print("\n")
-				Stop()
-			}
+		for _ = range stop {
+			fmt.Print("\n")
+			logger.Debug("caught interrupt")
+			Stop()
+		}
 	}()
 
 	Start()
