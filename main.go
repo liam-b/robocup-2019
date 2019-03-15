@@ -84,7 +84,7 @@ func loop(frequency float64, cycle int64) {
 }
 
 func update(frequency float64, cycle int64) {
-	bot.UpdateCaches()
+	bot.Update()
 }
 
 func exit() {

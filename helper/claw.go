@@ -9,7 +9,7 @@ const (
 	CLAW_ELEVATOR_SPEED = 300
 
 	CLAW_DEGREES = 320
-	CLAW_RELEASE_DEGREES = 30
+	CLAW_RELEASE_DEGREES = 40
 	CLAW_ELEVATOR_DEGREES = 520
 	CLAW_FUDGE = 5
 )
@@ -27,7 +27,7 @@ var claw = Helper{
 }
 
 func OpenClaw() {
-	bot.ClawMotor.RunToPositionAndBrake(CLAW_FUDGE, CLAW_SPEED)
+	bot.ClawMotor.RunToPositionAndCoast(CLAW_FUDGE, CLAW_SPEED)
 }
 
 func CloseClaw() {

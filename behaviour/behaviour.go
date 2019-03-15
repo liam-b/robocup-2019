@@ -4,8 +4,8 @@ import "github.com/liam-b/robocup-2019/logger"
 
 var behaviours = []Behaviour{
 	followLine,
-	// GreenTurn,
-	// WaterTower,
+	// greenTurn,
+	// waterTower,
 	// pause,
 }
 

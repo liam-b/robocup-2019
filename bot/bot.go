@@ -76,7 +76,7 @@ func Setup() {
 	ClawElevatorMotor.Setup()
 }
 
-func UpdateCaches() {
+func Update() {
 	// ColorSensorLeft.Update()
 	// ColorSensorMiddle.Update()
 	// ColorSensorRight.Update()

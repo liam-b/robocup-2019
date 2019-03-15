@@ -59,6 +59,14 @@ func (sensor ColorSensor) Update() {
 	sensor.cachedBlueValues = int(sensor.getColorValue(COLOR_SENSOR_BLUE_REGISTER))
 }
 
+func (sensor ColorSensor) Cleanup() {
+	err := sensor.device.WriteByte(COLOR_SENSOR_ENABLE_REGISTER, 0x00)
+	if err != nil {
+		logger.Error("color sensor: failed to cleanup sensor")
+	}
+	sensor.device.Destroy()
+}
+
 func (sensor ColorSensor) Intensity() int {
 	return sensor.cachedClearValue
 }
@@ -69,10 +77,6 @@ func (sensor ColorSensor) RGB() (int, int, int) {
 	blue := sensor.cachedBlueValues
 
 	return red, green, blue
-}
-
-func (sensor ColorSensor) Destroy() {
-	sensor.device.Destroy()
 }
 
 func (sensor ColorSensor) getClearValue(register uint8) int {
