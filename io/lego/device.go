@@ -51,26 +51,10 @@ func (device *Device) Setup() error {
 	return nil
 }
 
-func (device Device) GetStringAttribute(attribute string) (string, error) {
-	return ReadFile(device.path + attribute)
-}
-
-func (device Device) GetStringArrayAttribute(attribute string) ([]string, error) {
-	value, err := ReadFile(device.path + attribute)
-	return strings.Split(value, " "), err
-}
-
-func (device Device) GetIntAttribute(attribute string) (int, error) {
-	value, err := ReadFile(device.path + attribute)
-	intValue, _ := strconv.Atoi(value)
-	return intValue, err
-}
-
-func (device Device) SetStringAttribute(attribute string, value string) error {
+func (device Device) SetAttribute(attribute string, value string) error {
 	return WriteFile(device.path + attribute, value)
 }
 
-func (device Device) SetIntAttribute(attribute string, value int) error {
-	stringValue := strconv.Itoa(value)
-	return WriteFile(device.path + attribute, stringValue)
+func (device Device) GetAttribute(attribute string) (string, error) {
+	return ReadFile(device.path + attribute)
 }

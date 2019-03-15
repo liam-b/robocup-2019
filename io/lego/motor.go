@@ -1,27 +1,27 @@
 package lego
 
-type MotorAttribute string; const (
-	Command MotorAttribute = "command"
-	Position MotorAttribute = "position"
-	TargetPosition MotorAttribute = "position_sp"
-	Speed MotorAttribute = "speed_sp"
-	State MotorAttribute = "state"
-	StopAction MotorAttribute = "stop_action"
-)
-
 type Motor struct {
 	Port PortAddress
+	device TachoMotor
 
-	device MotorDevice
+	bufferedCommand string
+	bufferedStopAction string
+	bufferedSpeed int
+	cachedPosition int
+	bufferedPosition int
+	bufferedTargetPosition int
 }
 
 func (motor Motor) New() Motor {
-	motor.device = MotorDevice{Port: motor.Port}.New()
+	motor.device = TachoMotor{Port: motor.Port}.New()
 	return motor
 }
 
 func (motor *Motor) Setup() {
 	motor.device.Setup()
+}
+
+func (motor *Motor) Update() {
 }
 
 func (motor *Motor) Cleanup() {
