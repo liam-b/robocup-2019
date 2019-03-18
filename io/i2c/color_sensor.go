@@ -52,11 +52,11 @@ func (sensor ColorSensor) Setup() {
 	}
 }
 
-func (sensor ColorSensor) Update() {
-	sensor.cachedClearValue = int(sensor.getClearValue(COLOR_SENSOR_CLEAR_REGISTER))
-	sensor.cachedRedValues = int(sensor.getColorValue(COLOR_SENSOR_RED_REGISTER))
-	sensor.cachedGreenValues = int(sensor.getColorValue(COLOR_SENSOR_GREEN_REGISTER))
-	sensor.cachedBlueValues = int(sensor.getColorValue(COLOR_SENSOR_BLUE_REGISTER))
+func (sensor *ColorSensor) Update() {
+	sensor.cachedClearValue = sensor.getClearValue(COLOR_SENSOR_CLEAR_REGISTER)
+	sensor.cachedRedValues = sensor.getColorValue(COLOR_SENSOR_RED_REGISTER)
+	sensor.cachedGreenValues = sensor.getColorValue(COLOR_SENSOR_GREEN_REGISTER)
+	sensor.cachedBlueValues = sensor.getColorValue(COLOR_SENSOR_BLUE_REGISTER)
 }
 
 func (sensor ColorSensor) Cleanup() {
