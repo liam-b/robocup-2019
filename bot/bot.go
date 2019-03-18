@@ -5,14 +5,15 @@ import (
 	"github.com/liam-b/robocup-2019/io/i2c"
 	"github.com/liam-b/robocup-2019/logger"
 
+	"strconv"
 	"fmt"
 	"os"
 	"os/signal"
 )
 
 const (
-	MAIN_CYCLE_FREQUENCY = 2
-	IO_CYCLE_FREQUENCY = 1
+	MAIN_CYCLE_FREQUENCY = 30
+	IO_CYCLE_FREQUENCY = 10
 )
 
 var (
@@ -27,11 +28,13 @@ var (
 	MainCycle func(float64, int64)
 	IOCycle func(float64, int64)
 
+	Multiplexer i2c.Multiplexer
 	ColorSensorLeft i2c.ColorSensor
 	ColorSensorMiddle i2c.ColorSensor
 	ColorSensorRight i2c.ColorSensor
 	ColorMultiplexer i2c.Multiplexer
 	GyroSensor i2c.GyroSensor
+	UltrasonicSensor i2c.UltrasonicSensor
 
 	LeftDriveMotor lego.Motor
 	RightDriveMotor lego.Motor
@@ -46,8 +49,8 @@ func Init(_Start func(), _Exit func(), _MainCycle func(float64, int64), _IOCycle
 	MainCycle = _MainCycle
 	IOCycle = _IOCycle
 	
-	mainThread = Thread{Target: MAIN_CYCLE_FREQUENCY, Cycle: MainCycle}.New()
-	ioThread = Thread{Target: IO_CYCLE_FREQUENCY, Cycle: IOCycle}.New()
+	mainThread = Thread{Target: MAIN_CYCLE_FREQUENCY, Cycle: mainCycleWrapper}.New()
+	ioThread = Thread{Target: IO_CYCLE_FREQUENCY, Cycle: ioCycleWrapper}.New()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
@@ -60,15 +63,19 @@ func Init(_Start func(), _Exit func(), _MainCycle func(float64, int64), _IOCycle
 	}()
 
 	Start()
-	mainThread.Run()
 	ioThread.Start()
+	mainThread.Run()
 }
 
 func Setup() {
+	logger.Trace("setting up io devices")
+
+	Multiplexer.Setup()
 	// ColorSensorLeft.Setup()
-	// ColorSensorMiddle.Setup()
+	ColorSensorMiddle.Setup()
 	// ColorSensorRight.Setup()
 	// GyroSensor.Setup()
+	UltrasonicSensor.Setup()
 
 	LeftDriveMotor.Setup()
 	RightDriveMotor.Setup()
@@ -78,9 +85,10 @@ func Setup() {
 
 func Update() {
 	// ColorSensorLeft.Update()
-	// ColorSensorMiddle.Update()
+	ColorSensorMiddle.Update()
 	// ColorSensorRight.Update()
 	// GyroSensor.Update()
+	UltrasonicSensor.Update()
 
 	// LeftDriveMotor.Update()
 	// RightDriveMotor.Update()
@@ -89,10 +97,14 @@ func Update() {
 }
 
 func Cleanup() {
+	logger.Trace("cleaning up io devices")
+
+	// Multiplexer.Cleanup()
 	// ColorSensorLeft.Cleanup()
 	// ColorSensorMiddle.Cleanup()
 	// ColorSensorRight.Cleanup()
 	// GyroSensor.Cleanup()
+	// UltrasonicSensor.Cleanup()
 
 	// LeftDriveMotor.Cleanup()
 	// RightDriveMotor.Cleanup()
@@ -101,8 +113,8 @@ func Cleanup() {
 }
 
 func Stop() {
+	ioThread.Stop()
 	mainThread.Stop()
-	mainThread.Start()
 	Exit()
 	os.Exit(0)
 }
