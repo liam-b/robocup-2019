@@ -3,7 +3,6 @@ package lego
 import (
 	"errors"
 	"strings"
-	"strconv"
 )
 
 type DeviceType int; const (
