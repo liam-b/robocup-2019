@@ -34,7 +34,7 @@ func (device *TachoMotor) Setup() {
 	}
 }
 
-func (device TachoMotor) Update() {
+func (device *TachoMotor) Update() {
 	device.setBufferAttributes()
 	device.getCacheAttributes()
 }

@@ -71,9 +71,9 @@ func Setup() {
 	logger.Trace("setting up io devices")
 
 	Multiplexer.Setup()
-	// ColorSensorLeft.Setup()
+	ColorSensorLeft.Setup()
 	ColorSensorMiddle.Setup()
-	// ColorSensorRight.Setup()
+	ColorSensorRight.Setup()
 	// GyroSensor.Setup()
 	UltrasonicSensor.Setup()
 
@@ -84,30 +84,30 @@ func Setup() {
 }
 
 func Update() {
-	// ColorSensorLeft.Update()
+	ColorSensorLeft.Update()
 	ColorSensorMiddle.Update()
-	// ColorSensorRight.Update()
+	ColorSensorRight.Update()
 	// GyroSensor.Update()
 	UltrasonicSensor.Update()
 
-	// LeftDriveMotor.Update()
-	// RightDriveMotor.Update()
-	// ClawMotor.Update()
-	// ClawElevatorMotor.Update()
+	LeftDriveMotor.Update()
+	RightDriveMotor.Update()
+	ClawMotor.Update()
+	ClawElevatorMotor.Update()
 }
 
 func Cleanup() {
 	logger.Trace("cleaning up io devices")
 
-	// Multiplexer.Cleanup()
-	// ColorSensorLeft.Cleanup()
-	// ColorSensorMiddle.Cleanup()
-	// ColorSensorRight.Cleanup()
+	Multiplexer.Cleanup()
+	ColorSensorLeft.Cleanup()
+	ColorSensorMiddle.Cleanup()
+	ColorSensorRight.Cleanup()
 	// GyroSensor.Cleanup()
-	// UltrasonicSensor.Cleanup()
+	UltrasonicSensor.Cleanup()
 
-	// LeftDriveMotor.Cleanup()
-	// RightDriveMotor.Cleanup()
+	LeftDriveMotor.Cleanup()
+	RightDriveMotor.Cleanup()
 	ClawMotor.Cleanup()
 	ClawElevatorMotor.Cleanup()
 }

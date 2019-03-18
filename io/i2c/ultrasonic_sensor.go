@@ -57,6 +57,8 @@ func (sensor *UltrasonicSensor) Update() {
 	}
 }
 
+func (sensor UltrasonicSensor) Cleanup() {}
+
 func (sensor UltrasonicSensor) Distance() int {
 	return sensor.cachedDistance
 }

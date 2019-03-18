@@ -26,6 +26,7 @@ func (motor *Motor) Update() {
 
 func (motor *Motor) Cleanup() {
 	motor.device.SetStopAction("coast")
+	motor.device.Update()
 }
 
 func (motor Motor) Run(speed int) {
