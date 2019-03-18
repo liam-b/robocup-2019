@@ -106,3 +106,20 @@ func Stop() {
 	Exit()
 	os.Exit(0)
 }
+
+func mainCycleWrapper(frequency float64, cycles int64) {
+	droppedThreadCycles(mainThread, "main")
+	MainCycle(frequency, cycles)
+}
+
+func ioCycleWrapper(frequency float64, cycles int64) {
+	droppedThreadCycles(ioThread, "io")
+	IOCycle(frequency, cycles)
+}
+
+func droppedThreadCycles(thread Thread, name string) {
+	dropped := 100 - int(thread.frequency / thread.Target * 100)
+	if dropped > int(CYCLE_DROP_THRESHOLD * 100) {
+		logger.Warn(name + " thread dropping " + strconv.Itoa(dropped) + "% of cycles")
+	}
+}
