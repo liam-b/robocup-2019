@@ -10,6 +10,7 @@ const (
 
 	COMPASS_SENSOR_POWER_REGISTER = 0x4b
 	COMPASS_SENSOR_POWER_ON = 0x01
+	COMPASS_SENSOR_POWER_OFF = 0x00
 
 	COMPASS_SENSOR_ENABLE_REGISTER = 0x4c
 	COMPASS_SENSOR_ENABLE_ACTIVATE = 0x00
@@ -43,6 +44,17 @@ func (sensor CompassSensor) Setup() {
 	}
 }
 
+func (sensor CompassSensor) Update() {}
+
+func (sensor CompassSensor) Cleanup() {
+	err := sensor.device.WriteByte(COMPASS_SENSOR_POWER_REGISTER, COMPASS_SENSOR_POWER_OFF)
+	if err != nil {
+		logger.Error("compass sensor: failed to cleanup sensor")
+	}
+
+	sensor.device.Destroy()
+}
+
 func (sensor CompassSensor) Rotation() int {
 	valueLow, err := sensor.device.ReadByte(COMPASS_SENSOR_ROTATION_REGISTER)
 	if err != nil {
@@ -54,8 +66,4 @@ func (sensor CompassSensor) Rotation() int {
 
 	// return int(valueLow >> 1 + valueHigh << 7)
 	return int(valueLow)
-}
-
-func (sensor CompassSensor) Destroy() {
-	sensor.device.Destroy()
 }

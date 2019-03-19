@@ -85,7 +85,7 @@ func (i2c *Device) WriteByte(register uint8, value uint8) error {
 	buffer := []uint8{register, value}
 	err := i2c.SendBytes(buffer)
 	if err != nil {
-		return errors.New("i2c: failed to read word")
+		return errors.New("i2c: failed to write byte")
 	}
 
 	return nil

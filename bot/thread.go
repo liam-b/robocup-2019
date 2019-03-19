@@ -4,7 +4,10 @@ import (
 	"time"
 )
 
-const NANO_SECOND float64 = 1000000000.0
+const (
+	CYCLE_DROP_THRESHOLD = 0.5
+	NANO_SECOND = 1000000000.0
+)
 
 type Thread struct {
 	Target float64
@@ -20,11 +23,11 @@ func (thread Thread) New() Thread {
 	return thread
 }
 
-func (thread Thread) Start() {
+func (thread *Thread) Start() {
 	go thread.Run()
 }
 
-func (thread Thread) Run() {
+func (thread *Thread) Run() {
 	thread.running = true
 	thread.lastTime = time.Now().UnixNano()
 
@@ -33,6 +36,7 @@ func (thread Thread) Run() {
 		thread.delta += (float64)(now - thread.lastTime) / (NANO_SECOND / thread.Target)
 		thread.frequency = 1.0 / thread.delta * thread.Target
 		thread.lastTime = now
+
 		if thread.delta >= 1.0 {
 			thread.Cycle(thread.frequency, thread.Cycles)
 			thread.Cycles += 1

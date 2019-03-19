@@ -22,6 +22,10 @@ func (i2c *Multiplexer) Setup() {
 	i2c.SetChannel(0)
 }
 
+func (i2c *Multiplexer) Cleanup() {
+	i2c.SetChannel(0)
+}
+
 func (i2c *Multiplexer) SetChannel(index uint) {
 	i2c.Channel = index
 	channel := uint(1 << index)
