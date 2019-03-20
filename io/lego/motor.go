@@ -3,13 +3,6 @@ package lego
 type Motor struct {
 	Port PortAddress
 	device TachoMotor
-
-	bufferedCommand string
-	bufferedStopAction string
-	bufferedSpeed int
-	cachedPosition int
-	bufferedPosition int
-	bufferedTargetPosition int
 }
 
 func (motor Motor) New() Motor {
@@ -22,6 +15,7 @@ func (motor *Motor) Setup() {
 }
 
 func (motor *Motor) Update() {
+	motor.device.Update()
 }
 
 func (motor *Motor) Cleanup() {
