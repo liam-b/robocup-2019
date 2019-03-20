@@ -46,7 +46,7 @@ func (sensor ColorSensor) Setup() {
 		return
 	}
 
-	err = sensor.device.WriteByte(COLOR_SENSOR_TIMING_REGISTER, 0xf2)
+	err = sensor.device.WriteByte(COLOR_SENSOR_TIMING_REGISTER, 0xf3)
 	if err != nil {
 		logger.Error("color sensor: failed to setup sensor")
 	}
