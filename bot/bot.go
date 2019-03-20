@@ -9,11 +9,12 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"time"
 )
 
 const (
 	MAIN_CYCLE_FREQUENCY = 30
-	IO_CYCLE_FREQUENCY = 10
+	IO_CYCLE_FREQUENCY = 30
 )
 
 var (
@@ -67,6 +68,16 @@ func Init(_Start func(), _Exit func(), _MainCycle func(float64, int64), _IOCycle
 	mainThread.Run()
 }
 
+func Stop() {
+	ioThread.Stop()
+	mainThread.Stop()
+	time.Sleep(time.Millisecond * 100)
+	Exit()
+	ioThread.Destroy()
+	mainThread.Destroy()
+	os.Exit(0)
+}
+
 func Setup() {
 	logger.Trace("setting up io devices")
 
@@ -110,13 +121,6 @@ func Cleanup() {
 	RightDriveMotor.Cleanup()
 	ClawMotor.Cleanup()
 	ClawElevatorMotor.Cleanup()
-}
-
-func Stop() {
-	ioThread.Stop()
-	mainThread.Stop()
-	Exit()
-	os.Exit(0)
 }
 
 func mainCycleWrapper(frequency float64, cycles int64) {

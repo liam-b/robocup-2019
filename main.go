@@ -26,7 +26,9 @@ func start() {
 
 	logger.Debug("initialising io devices")
 	bot.Multiplexer = i2c.Multiplexer{}.New()
-	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
+	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
+	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
+	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
 	bot.UltrasonicSensor = i2c.UltrasonicSensor{}.New()
 
 	bot.LeftDriveMotor = lego.Motor{Port: lego.PORT_MA}.New()
@@ -41,15 +43,21 @@ func start() {
 	state_machine.Transition("follow_line")
 
 	time.Sleep(time.Second)
+
+	// helper.CloseClaw()
 	
-	doSumCanStuff()
+	// doSumCanStuff()
 }
 
 func loop(frequency float64, cycle int64) {
-	logger.Debug(bot.UltrasonicSensor.Distance())
-	// logger.Debug(bot.ColorSensorMiddle.Intensity())
+	// logger.Debug(bot.UltrasonicSensor.Distance())
+	logger.Debug(bot.ColorSensorLeft.Intensity(), bot.ColorSensorMiddle.Intensity(), bot.ColorSensorRight.Intensity())
 
-	time.Sleep(time.Millisecond * 20)
+	left, right := helper.PID()
+	bot.LeftDriveMotor.Run(left)
+	bot.RightDriveMotor.Run(right)
+
+	// time.Sleep(time.Millisecond * 20)
 }
 
 func update(frequency float64, cycle int64) {
