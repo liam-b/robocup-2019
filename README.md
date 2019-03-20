@@ -1,4 +1,6 @@
 # robocup-2019
+[https://www.robocupjunior.org.au/](robocupjunior.org.au)
+open line rescue division
 
 ### building
 run `run.sh`
