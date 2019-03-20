@@ -44,7 +44,7 @@ func (device TachoMotor) SetCommand(command string) {
 }
 
 func (device TachoMotor) SetSpeed(speed int) {
-	device.buffer["speed"] = strconv.Itoa(speed)
+	device.buffer["speed_sp"] = strconv.Itoa(speed)
 }
 
 func (device TachoMotor) SetPosition(position int) {
@@ -61,7 +61,7 @@ func (device TachoMotor) SetTargetPosition(position int) {
 }
 
 func (device TachoMotor) GetState() []string {
-	state, _ := device.cache["position"]
+	state, _ := device.cache["state"]
 	return strings.Split(state, " ")
 }
 
@@ -74,7 +74,7 @@ func (device *TachoMotor) setBufferAttributes() {
 		if device.buffer[attribute] != "" {
 			err := device.device.SetAttribute(attribute, value)
 			if err != nil {
-				device.handleError("failed to send " + attribute)
+				device.handleError("failed to set " + attribute)
 			} else {
 				device.buffer[attribute] = ""
 			}
