@@ -11,28 +11,30 @@ import (
 
 	"time"
 	"runtime"
+	"os"
 )
+
+var file *os.File
 
 func main() {
 	logger.Init(5, &state_machine.Current, &state_machine.Event)
 	state_machine.Init()
-	bot.Init(start, exit, loop, update)
+	bot.Init(start, exit, loop)
 }
 
 func start() {
 	logger.Info("started")
-
 	logger.Debug("max goroutines:", runtime.GOMAXPROCS(0))
 
 	logger.Debug("initialising io devices")
 	bot.Multiplexer = i2c.Multiplexer{}.New()
 	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
-	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
-	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
+	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
+	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
 	bot.UltrasonicSensor = i2c.UltrasonicSensor{}.New()
 
-	bot.LeftDriveMotor = lego.Motor{Port: lego.PORT_MA}.New()
-	bot.RightDriveMotor = lego.Motor{Port: lego.PORT_MD}.New()
+	bot.DriveMotorLeft = lego.Motor{Port: lego.PORT_MA}.New()
+	bot.DriveMotorRight = lego.Motor{Port: lego.PORT_MD}.New()
 	bot.ClawMotor = lego.Motor{Port: lego.PORT_MB}.New()
 	bot.ClawElevatorMotor = lego.Motor{Port: lego.PORT_MC}.New()
 
@@ -40,28 +42,34 @@ func start() {
 	helper.Setup()
 	behaviour.Setup()
 
-	state_machine.Transition("follow_line")
+	// state_machine.Transition("follow_line")
 
 	time.Sleep(time.Second)
+
+	// file, _ = os.Create("./graph.csv")
+
+	// helper.RunDrive(20)
 
 	// helper.CloseClaw()
 	
 	// doSumCanStuff()
 }
 
-func loop(frequency float64, cycle int64) {
+// func loop(frequency float64, cycle int64) {
+func loop() {
+	bot.Update()
 	// logger.Debug(bot.UltrasonicSensor.Distance())
-	logger.Debug(bot.ColorSensorLeft.Intensity(), bot.ColorSensorMiddle.Intensity(), bot.ColorSensorRight.Intensity())
+	// logger.Debug(bot.ColorSensorLeft.Intensity(), bot.ColorSensorMiddle.Intensity(), bot.ColorSensorRight.Intensity())
 
+	// helper.PID()
 	left, right := helper.PID()
-	bot.LeftDriveMotor.Run(left)
-	bot.RightDriveMotor.Run(right)
+	bot.DriveMotorLeft.Run(left)
+	bot.DriveMotorRight.Run(right)
+
+	// logger.Debug(helper.LineError())
+	// logger.Debug(bot.ColorSensorLeft.Intensity())
 
 	// time.Sleep(time.Millisecond * 20)
-}
-
-func update(frequency float64, cycle int64) {
-	bot.Update()
 }
 
 func exit() {

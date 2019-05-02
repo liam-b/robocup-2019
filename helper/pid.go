@@ -1,17 +1,16 @@
 package helper
 
 import (
-  "github.com/liam-b/robocup-2019/bot"
+  // "github.com/liam-b/robocup-2019/bot"
+  // "github.com/liam-b/robocup-2019/logger"
 )
 
 const (
-  PROPORTIONAL = 15.0
-  INTEGRAL = 1.0
-  DERIVATIVE = 5.0
+  PROPORTIONAL = 400.0
+  INTEGRAL = 1.5
+  DERIVATIVE = 3000.0
 
-  // INTEGRAL_RANGE = 
-
-  BASE_SPEED = 150
+  BASE_SPEED = 300
 )
 
 var (
@@ -21,21 +20,25 @@ var (
 
 func PID() (int, int) {
   currentError := LineError()
-  integral += currentError * (1.0 / float64(bot.MAIN_CYCLE_FREQUENCY))
-  derivative := (currentError - lastError) * float64(bot.MAIN_CYCLE_FREQUENCY) / 4
+  integral += currentError
+  derivative := currentError - lastError
+  
+
+  // logger.Debug("err:", int(currentError), "P:", int(PROPORTIONAL * proportional), "I:", int(INTEGRAL * integral), "D:", int(DERIVATIVE * derivative))
 
   speed := (PROPORTIONAL * currentError) + (INTEGRAL * integral) + (DERIVATIVE * derivative)
+  lastError = currentError
 
-  lastError = currentError;
+  left := min(max(-1000, BASE_SPEED + int(speed)), 1000)
+  right := min(max(-1000, BASE_SPEED - int(speed)), 1000)
 
-  left := min(max(BASE_SPEED + int(speed), -1000), 1000)
-  right := min(max(BASE_SPEED - int(speed), -1000), 1000)
+  // logger.Debug(delta, bot.IOThread.LastCycleTime, bot.MainThread.LastCycleTime)
+  // logger.Debug("c", currentError)
+  // logger.Debug("d", derivative)
+  // logger.Debug("D", DERIVATIVE * derivative)
+  // logger.Debug("s", speed)
 
   return left, right
-}
-
-func LineError() float64 {
-  return float64(bot.ColorSensorLeft.Intensity() - bot.ColorSensorRight.Intensity())
 }
 
 func ResetPID() {
@@ -55,4 +58,38 @@ func min(a int, b int) int {
     return a
   }
   return b
+}
+
+func cap(v int, r int) int {
+  if v > r {
+    return r
+  }
+  if v < -r {
+    return -r
+  }
+  return v
+}
+
+func maxf(a float64, b float64) float64 {
+  if a > b {
+    return a
+  }
+  return b
+}
+
+func minf(a float64, b float64) float64 {
+  if a < b {
+    return a
+  }
+  return b
+}
+
+func capf(v float64, r float64) float64 {
+  if v > r {
+    return r
+  }
+  if v < -r {
+    return -r
+  }
+  return v
 }

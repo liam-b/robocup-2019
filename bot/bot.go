@@ -5,7 +5,6 @@ import (
 	"github.com/liam-b/robocup-2019/io/i2c"
 	"github.com/liam-b/robocup-2019/logger"
 
-	"strconv"
 	"fmt"
 	"os"
 	"os/signal"
@@ -13,21 +12,18 @@ import (
 )
 
 const (
-	MAIN_CYCLE_FREQUENCY = 30
-	IO_CYCLE_FREQUENCY = 30
+	CYCLE_FREQUENCY = 60
 )
 
 var (
 	looping bool = true
-	mainThread Thread
-	ioThread Thread
+	CycleThread Thread
 
 	Start func()
 	Loop func()
 	Exit func()
 
-	MainCycle func(float64, int64)
-	IOCycle func(float64, int64)
+	Cycle func()
 
 	Multiplexer i2c.Multiplexer
 	ColorSensorLeft i2c.ColorSensor
@@ -37,21 +33,17 @@ var (
 	GyroSensor i2c.GyroSensor
 	UltrasonicSensor i2c.UltrasonicSensor
 
-	LeftDriveMotor lego.Motor
-	RightDriveMotor lego.Motor
+	DriveMotorLeft lego.Motor
+	DriveMotorRight lego.Motor
 	ClawMotor lego.Motor
 	ClawElevatorMotor lego.Motor
 )
 
-func Init(_Start func(), _Exit func(), _MainCycle func(float64, int64), _IOCycle func(float64, int64)) {
+func Init(_Start func(), _Exit func(), _Cycle func()) {
 	Start = _Start
 	Exit = _Exit
-
-	MainCycle = _MainCycle
-	IOCycle = _IOCycle
-	
-	mainThread = Thread{Target: MAIN_CYCLE_FREQUENCY, Cycle: mainCycleWrapper}.New()
-	ioThread = Thread{Target: IO_CYCLE_FREQUENCY, Cycle: ioCycleWrapper}.New()
+	Cycle = _Cycle
+	CycleThread = Thread{Target: CYCLE_FREQUENCY, Cycle: Cycle}.New()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
@@ -64,17 +56,15 @@ func Init(_Start func(), _Exit func(), _MainCycle func(float64, int64), _IOCycle
 	}()
 
 	Start()
-	ioThread.Start()
-	mainThread.Run()
+	CycleThread.Run()
 }
 
 func Stop() {
-	ioThread.Stop()
-	mainThread.Stop()
-	time.Sleep(time.Millisecond * 100)
+	CycleThread.Stop()
+	time.Sleep(time.Millisecond * 500)
 	Exit()
-	ioThread.Destroy()
-	mainThread.Destroy()
+	time.Sleep(time.Millisecond * 500)
+	CycleThread.Destroy()
 	os.Exit(0)
 }
 
@@ -88,8 +78,8 @@ func Setup() {
 	// GyroSensor.Setup()
 	UltrasonicSensor.Setup()
 
-	LeftDriveMotor.Setup()
-	RightDriveMotor.Setup()
+	DriveMotorLeft.Setup()
+	DriveMotorRight.Setup()
 	ClawMotor.Setup()
 	ClawElevatorMotor.Setup()
 }
@@ -101,8 +91,8 @@ func Update() {
 	// GyroSensor.Update()
 	UltrasonicSensor.Update()
 
-	LeftDriveMotor.Update()
-	RightDriveMotor.Update()
+	DriveMotorLeft.Update()
+	DriveMotorRight.Update()
 	ClawMotor.Update()
 	ClawElevatorMotor.Update()
 }
@@ -117,25 +107,8 @@ func Cleanup() {
 	// GyroSensor.Cleanup()
 	UltrasonicSensor.Cleanup()
 
-	LeftDriveMotor.Cleanup()
-	RightDriveMotor.Cleanup()
+	DriveMotorLeft.Cleanup()
+	DriveMotorRight.Cleanup()
 	ClawMotor.Cleanup()
 	ClawElevatorMotor.Cleanup()
-}
-
-func mainCycleWrapper(frequency float64, cycles int64) {
-	droppedThreadCycles(mainThread, "main")
-	MainCycle(frequency, cycles)
-}
-
-func ioCycleWrapper(frequency float64, cycles int64) {
-	droppedThreadCycles(ioThread, "io")
-	IOCycle(frequency, cycles)
-}
-
-func droppedThreadCycles(thread Thread, name string) {
-	dropped := 100 - int(thread.frequency / thread.Target * 100)
-	if dropped > int(CYCLE_DROP_THRESHOLD * 100) {
-		logger.Warn(name + " thread dropping " + strconv.Itoa(dropped) + "% of cycles")
-	}
 }

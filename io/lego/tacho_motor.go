@@ -6,6 +6,7 @@ import (
 	"strings"
 	"strconv"
 	"time"
+	"sync"
 )
 
 type TachoMotor struct {
@@ -14,12 +15,14 @@ type TachoMotor struct {
 
 	buffer map[string]string
 	cache map[string]string
+	mutex *sync.Mutex
 }
 
 func (device TachoMotor) New() TachoMotor {
 	device.device = Device{Port: device.Port, Type: MotorDeviceType}.New()
 	device.buffer = map[string]string{"command": "", "speed_sp": "", "position": "", "position_sp": "", "stop_action": ""}
 	device.cache = map[string]string{"position": "", "state": ""}
+	device.mutex = &sync.Mutex{}
 
 	return device
 }
@@ -40,15 +43,21 @@ func (device *TachoMotor) Update() {
 }
 
 func (device TachoMotor) SetCommand(command string) {
+	device.mutex.Lock()
 	device.buffer["command"] = command
+	device.mutex.Unlock()
 }
 
 func (device TachoMotor) SetSpeed(speed int) {
+	device.mutex.Lock()
 	device.buffer["speed_sp"] = strconv.Itoa(speed)
+	device.mutex.Unlock()
 }
 
 func (device TachoMotor) SetPosition(position int) {
+	device.mutex.Lock()
 	device.buffer["position"] = strconv.Itoa(position)
+	device.mutex.Unlock()
 }
 
 func (device TachoMotor) GetPosition() int {
@@ -57,7 +66,9 @@ func (device TachoMotor) GetPosition() int {
 }
 
 func (device TachoMotor) SetTargetPosition(position int) {
+	device.mutex.Lock()
 	device.buffer["position_sp"] = strconv.Itoa(position)
+	device.mutex.Unlock()
 }
 
 func (device TachoMotor) GetState() []string {
@@ -66,10 +77,13 @@ func (device TachoMotor) GetState() []string {
 }
 
 func (device *TachoMotor) SetStopAction(action string) {
+	device.mutex.Lock()
 	device.buffer["stop_action"] = action
+	device.mutex.Unlock()
 }
 
 func (device *TachoMotor) setBufferAttributes() {
+	device.mutex.Lock()
 	for attribute, value := range device.buffer {
 		if device.buffer[attribute] != "" {
 			err := device.device.SetAttribute(attribute, value)
@@ -80,6 +94,7 @@ func (device *TachoMotor) setBufferAttributes() {
 			}
 		}
 	}
+	device.mutex.Unlock()
 }
 
 func (device *TachoMotor) getCacheAttributes() {
