@@ -3,25 +3,28 @@ package bot
 import (
 	// "github.com/liam-b/robocup-2019/logger"
 
+	"strconv"
 	"time"
+
+	"github.com/liam-b/robocup-2019/logger"
 	// "strconv"
 )
 
 const (
-	THREAD_CYCLE_DROP_THRESHOLD = 0.5
-	NANO_SECOND = 1000000000.0
+	CYCLE_DROP_THRESHOLD = 0.5
+	NANO_SECOND          = 1000000000.0
 )
 
 type Thread struct {
-	Target float64
-	Frequency float64
-	Cycle func()
-	Cycles int64
+	Target        float64
+	Frequency     float64
+	Cycle         func()
+	Cycles        int64
 	LastCycleTime int64
-	
-	alive bool
+
+	alive   bool
 	running bool
-	delta float64
+	delta   float64
 }
 
 func (thread Thread) New() Thread {
@@ -40,14 +43,14 @@ func (thread *Thread) Run() {
 	for thread.alive {
 		if thread.running {
 			now := time.Now().UnixNano()
-			thread.delta += float64(now - thread.LastCycleTime) / (NANO_SECOND / thread.Target)
+			thread.delta += float64(now-thread.LastCycleTime) / (NANO_SECOND / thread.Target)
 			thread.Frequency = 1.0 / thread.delta * thread.Target
 			thread.LastCycleTime = now
 
 			if thread.delta >= 1.0 {
+				thread.checkFrameDrop()
 				thread.doCycle()
 			}
-			thread.checkFrameDrop()
 		}
 	}
 }
@@ -59,10 +62,10 @@ func (thread *Thread) doCycle() {
 }
 
 func (thread Thread) checkFrameDrop() {
-	// dropped := 100 - int(1.0 / thread.delta * 100.0)
-	// if dropped > int(THREAD_CYCLE_DROP_THRESHOLD * 100.0) {
-	// 	logger.Warn("thread dropping " + strconv.Itoa(dropped) + "% of cycles")
-	// }
+	dropped := 100 - int((1.0/thread.delta)*100.0)
+	if dropped > int(CYCLE_DROP_THRESHOLD*100.0) {
+		logger.Warn("thread dropping " + strconv.Itoa(dropped) + "% of cycles")
+	}
 }
 
 func (thread *Thread) Stop() {

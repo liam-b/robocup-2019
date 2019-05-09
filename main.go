@@ -2,16 +2,16 @@ package main
 
 import (
 	"github.com/liam-b/robocup-2019/behaviour"
-	"github.com/liam-b/robocup-2019/helper"
 	"github.com/liam-b/robocup-2019/bot"
+	"github.com/liam-b/robocup-2019/helper"
+	"github.com/liam-b/robocup-2019/io/i2c"
+	"github.com/liam-b/robocup-2019/io/lego"
 	"github.com/liam-b/robocup-2019/logger"
 	"github.com/liam-b/robocup-2019/state_machine"
-	"github.com/liam-b/robocup-2019/io/lego"
-	"github.com/liam-b/robocup-2019/io/i2c"
 
-	"time"
-	"runtime"
 	"os"
+	"runtime"
+	"time"
 )
 
 var file *os.File
@@ -51,7 +51,7 @@ func start() {
 	// helper.RunDrive(20)
 
 	// helper.CloseClaw()
-	
+
 	// doSumCanStuff()
 }
 

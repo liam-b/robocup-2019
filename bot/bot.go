@@ -1,8 +1,8 @@
 package bot
 
 import (
-	"github.com/liam-b/robocup-2019/io/lego"
 	"github.com/liam-b/robocup-2019/io/i2c"
+	"github.com/liam-b/robocup-2019/io/lego"
 	"github.com/liam-b/robocup-2019/logger"
 
 	"fmt"
@@ -16,26 +16,26 @@ const (
 )
 
 var (
-	looping bool = true
+	looping     bool = true
 	CycleThread Thread
 
 	Start func()
-	Loop func()
-	Exit func()
+	Loop  func()
+	Exit  func()
 
 	Cycle func()
 
-	Multiplexer i2c.Multiplexer
-	ColorSensorLeft i2c.ColorSensor
+	Multiplexer       i2c.Multiplexer
+	ColorSensorLeft   i2c.ColorSensor
 	ColorSensorMiddle i2c.ColorSensor
-	ColorSensorRight i2c.ColorSensor
-	ColorMultiplexer i2c.Multiplexer
-	GyroSensor i2c.GyroSensor
-	UltrasonicSensor i2c.UltrasonicSensor
+	ColorSensorRight  i2c.ColorSensor
+	ColorMultiplexer  i2c.Multiplexer
+	GyroSensor        i2c.GyroSensor
+	UltrasonicSensor  i2c.UltrasonicSensor
 
-	DriveMotorLeft lego.Motor
-	DriveMotorRight lego.Motor
-	ClawMotor lego.Motor
+	DriveMotorLeft    lego.Motor
+	DriveMotorRight   lego.Motor
+	ClawMotor         lego.Motor
 	ClawElevatorMotor lego.Motor
 )
 
