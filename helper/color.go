@@ -1,18 +1,19 @@
 package helper
 
 import (
-	"github.com/liam-b/robocup-2019/bot"
 	"math"
+
+	"github.com/liam-b/robocup-2019/bot"
 )
 
 const (
 	FOLLOW_WHITE_INTENSITY = 44
 	FOLLOW_BLACK_INTENSITY = 11
-	FOLLOW_EXPONENT = 1.0
+	FOLLOW_EXPONENT        = 1.1
 )
 
 func LineError() float64 {
-	err := NormalisedSensor(bot.ColorSensorLeft.Intensity()) - NormalisedSensor(bot.ColorSensorRight.Intensity())
+	err := LeftError() - RightError()
 
 	if err >= 0 {
 		err = math.Pow(err, FOLLOW_EXPONENT)
@@ -23,14 +24,26 @@ func LineError() float64 {
 	return minf(maxf(-1.0, err), 1.0)
 }
 
+func LeftError() float64 {
+	return NormalisedSensor(bot.ColorSensorLeft.Intensity())
+}
+
+func RightError() float64 {
+	return NormalisedSensor(bot.ColorSensorRight.Intensity())
+}
+
+func MiddleError() float64 {
+	return NormalisedSensor(bot.ColorSensorMiddle.Intensity())
+}
+
 func NormalisedSensor(value int) float64 {
 	raw := ScaledSensor(value)
 
-	normalised := math.Acos(1.0 - (2 * raw)) / 3
+	normalised := math.Acos(1.0-(2*raw)) / 3
 	return minf(maxf(0.0, normalised), 1.0)
 }
 
 func ScaledSensor(value int) float64 {
-	raw := float64(value - FOLLOW_BLACK_INTENSITY) / float64(FOLLOW_WHITE_INTENSITY - FOLLOW_BLACK_INTENSITY)
+	raw := float64(value-FOLLOW_BLACK_INTENSITY) / float64(FOLLOW_WHITE_INTENSITY-FOLLOW_BLACK_INTENSITY)
 	return minf(maxf(0.0, raw), 1.0)
 }

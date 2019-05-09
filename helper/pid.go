@@ -1,11 +1,19 @@
 package helper
 
 const (
-	PROPORTIONAL = 400.0
-	INTEGRAL     = 1.5
-	DERIVATIVE   = 3000.0
+	// PROPORTIONAL = 400.0
+	// INTEGRAL     = 0.4
+	// DERIVATIVE   = 3000.0
 
-	BASE_SPEED = 300
+	PROPORTIONAL = 580
+	INTEGRAL     = 1.4
+	DERIVATIVE   = 2900
+
+	BASE_SPEED       = 270
+	HARD_TURN_VALUE  = 0.25
+	HARD_TURN_SPEED  = 400
+	HARD_TURN_OFFSET = 000
+	RESET_THRESHOLD  = 0.22
 )
 
 var (
@@ -23,6 +31,20 @@ func PID() (int, int) {
 
 	left := min(max(-1000, BASE_SPEED+int(speed)), 1000)
 	right := min(max(-1000, BASE_SPEED-int(speed)), 1000)
+
+	if LeftError() < HARD_TURN_VALUE {
+		left = HARD_TURN_OFFSET - HARD_TURN_SPEED
+		right = HARD_TURN_OFFSET + HARD_TURN_SPEED
+	}
+
+	if RightError() < HARD_TURN_VALUE {
+		left = HARD_TURN_OFFSET + HARD_TURN_SPEED
+		right = HARD_TURN_OFFSET - HARD_TURN_SPEED
+	}
+
+	if MiddleError() > RESET_THRESHOLD {
+		integral = 0
+	}
 
 	return left, right
 }
