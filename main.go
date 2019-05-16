@@ -17,7 +17,7 @@ import (
 var file *os.File
 
 func main() {
-	logger.Init(5, &state_machine.Current, &state_machine.Event)
+	logger.Init(6, &state_machine.Current, &state_machine.Event)
 	state_machine.Init()
 	bot.Init(start, exit, loop)
 }
@@ -42,29 +42,23 @@ func start() {
 	helper.Setup()
 	behaviour.Setup()
 
-	// state_machine.Transition("follow_line")
+	state_machine.Transition("follow_line")
 
 	time.Sleep(time.Second)
 
 	// file, _ = os.Create("./graph.csv")
-
-	// helper.RunDrive(20)
-
-	// helper.CloseClaw()
-
-	// doSumCanStuff()
 }
 
 // func loop(frequency float64, cycle int64) {
 func loop() {
 	bot.Update()
+	state_machine.Update()
 	// logger.Debug(bot.UltrasonicSensor.Distance())
 	// logger.Debug(bot.ColorSensorLeft.Intensity(), bot.ColorSensorMiddle.Intensity(), bot.ColorSensorRight.Intensity())
 
-	// helper.PID()
-	left, right := helper.PID()
-	bot.DriveMotorLeft.Run(left)
-	bot.DriveMotorRight.Run(right)
+	// left, right := helper.PID()
+	// bot.DriveMotorLeft.Run(left)
+	// bot.DriveMotorRight.Run(right)
 
 	// logger.Debug(helper.LineError())
 	// logger.Debug(bot.ColorSensorLeft.Intensity())
@@ -78,6 +72,8 @@ func exit() {
 	behaviour.Cleanup()
 	helper.Cleanup()
 	bot.Cleanup()
+
+	time.Sleep(time.Millisecond * 100)
 }
 
 func doSumCanStuff() {

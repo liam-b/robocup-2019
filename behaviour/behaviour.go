@@ -4,13 +4,13 @@ import "github.com/liam-b/robocup-2019/logger"
 
 var behaviours = []Behaviour{
 	followLine,
-	// greenTurn,
+	greenTurn,
 	// waterTower,
 	// pause,
 }
 
 type Behaviour struct {
-	Setup func()
+	Setup   func()
 	Cleanup func()
 }
 

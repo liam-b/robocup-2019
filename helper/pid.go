@@ -1,15 +1,19 @@
 package helper
 
+import (
+	// "fmt"
+)
+
 const (
 	// PROPORTIONAL = 400.0
 	// INTEGRAL     = 0.4
 	// DERIVATIVE   = 3000.0
 
-	PROPORTIONAL = 580
-	INTEGRAL     = 1.4
+	PROPORTIONAL = 585
+	INTEGRAL     = 1.44
 	DERIVATIVE   = 2900
 
-	BASE_SPEED       = 270
+	BASE_SPEED       = 250
 	HARD_TURN_VALUE  = 0.25
 	HARD_TURN_SPEED  = 400
 	HARD_TURN_OFFSET = 000
@@ -29,8 +33,8 @@ func PID() (int, int) {
 	speed := (PROPORTIONAL * currentError) + (INTEGRAL * integral) + (DERIVATIVE * derivative)
 	lastError = currentError
 
-	left := min(max(-1000, BASE_SPEED+int(speed)), 1000)
-	right := min(max(-1000, BASE_SPEED-int(speed)), 1000)
+	left := min(max(-1000, BASE_SPEED + int(speed)), 1000)
+	right := min(max(-1000, BASE_SPEED - int(speed)), 1000)
 
 	if LeftError() < HARD_TURN_VALUE {
 		left = HARD_TURN_OFFSET - HARD_TURN_SPEED
