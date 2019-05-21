@@ -6,7 +6,6 @@ import (
 
 type State struct {
 	Name        string
-	Transitions []string
 	Enter       func()
 	Update      func()
 	Exit        func()
@@ -28,8 +27,8 @@ var (
 )
 
 func Init() {
-	Add(State{Name: "init", Transitions: []string{"*"}})
-	Add(State{Name: "exit", Transitions: []string{}})
+	Add(State{Name: "init"})
+	Add(State{Name: "exit"})
 }
 
 func Transition(destination string) {
@@ -37,7 +36,7 @@ func Transition(destination string) {
 		setEvent(internalEvent)
 		logger.Warn("attempted transition to unknown state")
 		setEvent(outsideEvent)
-	} else if contains(States[Current].Transitions, destination) || contains(States[Current].Transitions, "*") {
+	} else {
 		setEvent(exitEvent)
 		logTransition("exited")
 		if (States[Current].Exit != nil) {

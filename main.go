@@ -42,7 +42,7 @@ func start() {
 	helper.Setup()
 	behaviour.Setup()
 
-	state_machine.Transition("follow_line")
+	state_machine.Transition("follow_line.follow")
 
 	time.Sleep(time.Second)
 

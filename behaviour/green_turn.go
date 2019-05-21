@@ -6,11 +6,17 @@ import (
 	"github.com/liam-b/robocup-2019/state_machine"
 )
 
+const GREEN_TURN_EXIT_INTENSNITY = 0.2
+const GREEN_TURN_INNER_SPEED = -100
+const GREEN_TURN_OUTER_SPEED = 200
+
+var greenTurnEndCooldown = 0
+var GREEN_TURN_END_COOLDOWN_LIMIT = bot.Time(800)
+
 var greenTurn = Behaviour{
 	Setup: func() {
 		state_machine.Add(state_machine.State{
 			Name: "green_turn.verify",
-			Transitions: []string{"green_turn.left", "green_turn.right"},
 			Update: func() {
 				if (helper.LeftColor() == helper.COLOR_GREEN) {
 					state_machine.Transition("green_turn.left")
@@ -24,19 +30,37 @@ var greenTurn = Behaviour{
 
 		state_machine.Add(state_machine.State{
 			Name: "green_turn.left",
-			Transitions: []string{"green_turn.cooldown"},
+			Enter: func() {
+				greenTurnEndCooldown = 0
+			},
 			Update: func() {
-				bot.DriveMotorLeft.Run(-100)
-				bot.DriveMotorRight.Run(100)
+				bot.DriveMotorLeft.Run(GREEN_TURN_INNER_SPEED)
+				bot.DriveMotorRight.Run(GREEN_TURN_OUTER_SPEED)
+
+				greenTurnEndCooldown += 1
+				if greenTurnEndCooldown > GREEN_TURN_END_COOLDOWN_LIMIT {
+					if (helper.RightColor() == helper.COLOR_BLACK) {
+						state_machine.Transition("follow_line.follow")
+					}
+				}
 			},
 		})
 
 		state_machine.Add(state_machine.State{
 			Name: "green_turn.right",
-			Transitions: []string{"green_turn.cooldown"},
+			Enter: func() {
+				greenTurnEndCooldown = 0
+			},
 			Update: func() {
-				bot.DriveMotorLeft.Run(100)
-				bot.DriveMotorRight.Run(-100)
+				bot.DriveMotorLeft.Run(GREEN_TURN_OUTER_SPEED)
+				bot.DriveMotorRight.Run(GREEN_TURN_INNER_SPEED)
+
+				greenTurnEndCooldown += 1
+				if greenTurnEndCooldown > GREEN_TURN_END_COOLDOWN_LIMIT {
+					if (helper.LeftColor() == helper.COLOR_BLACK) {
+						state_machine.Transition("follow_line.follow")
+					}
+				}
 			},
 		})
 	},

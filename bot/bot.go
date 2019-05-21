@@ -112,3 +112,7 @@ func Cleanup() {
 	ClawMotor.Cleanup()
 	ClawElevatorMotor.Cleanup()
 }
+
+func Time(milliseconds int) int {
+	return CYCLE_FREQUENCY * (milliseconds / 1000);
+}
