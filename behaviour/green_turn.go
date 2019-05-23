@@ -7,11 +7,11 @@ import (
 )
 
 const GREEN_TURN_EXIT_INTENSNITY = 0.2
-const GREEN_TURN_INNER_SPEED = -100
+const GREEN_TURN_INNER_SPEED = -50
 const GREEN_TURN_OUTER_SPEED = 200
 
 var greenTurnEndCooldown = 0
-var GREEN_TURN_END_COOLDOWN_LIMIT = bot.Time(800)
+var GREEN_TURN_END_COOLDOWN_LIMIT = bot.Time(500)
 
 var greenTurn = Behaviour{
 	Setup: func() {
@@ -32,11 +32,10 @@ var greenTurn = Behaviour{
 			Name: "green_turn.left",
 			Enter: func() {
 				greenTurnEndCooldown = 0
-			},
-			Update: func() {
 				bot.DriveMotorLeft.Run(GREEN_TURN_INNER_SPEED)
 				bot.DriveMotorRight.Run(GREEN_TURN_OUTER_SPEED)
-
+			},
+			Update: func() {
 				greenTurnEndCooldown += 1
 				if greenTurnEndCooldown > GREEN_TURN_END_COOLDOWN_LIMIT {
 					if (helper.RightColor() == helper.COLOR_BLACK) {
@@ -44,23 +43,30 @@ var greenTurn = Behaviour{
 					}
 				}
 			},
+			Exit: func() {
+				bot.DriveMotorLeft.Brake()
+				bot.DriveMotorRight.Brake()
+			},
 		})
 
 		state_machine.Add(state_machine.State{
 			Name: "green_turn.right",
 			Enter: func() {
 				greenTurnEndCooldown = 0
-			},
-			Update: func() {
 				bot.DriveMotorLeft.Run(GREEN_TURN_OUTER_SPEED)
 				bot.DriveMotorRight.Run(GREEN_TURN_INNER_SPEED)
-
+			},
+			Update: func() {
 				greenTurnEndCooldown += 1
 				if greenTurnEndCooldown > GREEN_TURN_END_COOLDOWN_LIMIT {
 					if (helper.LeftColor() == helper.COLOR_BLACK) {
 						state_machine.Transition("follow_line.follow")
 					}
 				}
+			},
+			Exit: func() {
+				bot.DriveMotorLeft.Brake()
+				bot.DriveMotorRight.Brake()
 			},
 		})
 	},

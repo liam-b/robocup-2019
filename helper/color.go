@@ -7,8 +7,10 @@ import (
 
 const (
 	FOLLOW_WHITE_INTENSITY = 44
-	FOLLOW_BLACK_INTENSITY = 11
+	FOLLOW_BLACK_INTENSITY = 15
 	FOLLOW_EXPONENT        = 1.1
+
+	COLOR_BLACK_INTENSITY = 15
 
 	COLOR_BLACK = 0
 	COLOR_WHITE = 1
@@ -31,13 +33,12 @@ func RightColor() int {
 }
 
 func colorValue(red int, green int, blue int) int {
-	if green > red + 10 && green > blue + 10 {
+	if green < COLOR_BLACK_INTENSITY {
+		return COLOR_BLACK
+	} else if green > red + 8 && green > blue + 8 {
 		return COLOR_GREEN
 	}
 
-	if green < 11 {
-		return COLOR_BLACK
-	}
 	return COLOR_WHITE
 }
 
