@@ -42,7 +42,9 @@ func start() {
 	helper.Setup()
 	behaviour.Setup()
 
-	state_machine.Transition("follow_line.follow")
+	// state_machine.Transition("follow_line.follow") 
+	state_machine.Transition("water_tower.verify")
+
 
 	time.Sleep(time.Second)
 
