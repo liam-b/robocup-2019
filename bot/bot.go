@@ -114,5 +114,5 @@ func Cleanup() {
 }
 
 func Time(milliseconds int) int {
-	return CYCLE_FREQUENCY * (milliseconds / 1000);
+	return int(CYCLE_FREQUENCY * (float64(milliseconds) / 1000.0))
 }

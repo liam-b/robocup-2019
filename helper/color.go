@@ -8,9 +8,12 @@ import (
 const (
 	FOLLOW_WHITE_INTENSITY = 44
 	FOLLOW_BLACK_INTENSITY = 15
-	FOLLOW_EXPONENT        = 1.1
+	FOLLOW_EXPONENT = 1.1
 
 	COLOR_BLACK_INTENSITY = 15
+	COLOR_GREEN_INTENSITY_DIFFERENCE = 7
+
+	COLOR_MIDDLE_BLACK_INTENSITY = 35
 
 	COLOR_BLACK = 0
 	COLOR_WHITE = 1
@@ -22,10 +25,10 @@ func LeftColor() int {
 }
 
 func MiddleColor() int {
-	if bot.ColorSensorMiddle.Intensity() > 35 {
-		return COLOR_WHITE
+	if bot.ColorSensorMiddle.Intensity() < COLOR_MIDDLE_BLACK_INTENSITY {
+		return COLOR_BLACK
 	}
-	return COLOR_BLACK
+	return COLOR_WHITE
 }
 
 func RightColor() int {
@@ -35,7 +38,7 @@ func RightColor() int {
 func colorValue(red int, green int, blue int) int {
 	if green < COLOR_BLACK_INTENSITY {
 		return COLOR_BLACK
-	} else if green > red + 8 && green > blue + 8 {
+	} else if green > red + COLOR_GREEN_INTENSITY_DIFFERENCE && green > blue + COLOR_GREEN_INTENSITY_DIFFERENCE {
 		return COLOR_GREEN
 	}
 
@@ -76,6 +79,6 @@ func NormalisedSensor(value int) float64 {
 }
 
 func ScaledSensor(value int) float64 {
-	raw := float64(value-FOLLOW_BLACK_INTENSITY) / float64(FOLLOW_WHITE_INTENSITY-FOLLOW_BLACK_INTENSITY)
+	raw := float64(value - FOLLOW_BLACK_INTENSITY) / float64(FOLLOW_WHITE_INTENSITY - FOLLOW_BLACK_INTENSITY)
 	return minf(maxf(0.0, raw), 1.0)
 }

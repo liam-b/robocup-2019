@@ -12,11 +12,15 @@ const FOLLOW_LINE_LOST_RECAPTURE_SPEED = 200
 var followLineLostCount = 0
 var FOLLOW_LINE_LOST_LIMIT = bot.Time(1000)
 
+var followLineFoundGreenCount = 0
+var FOLLOW_LINE_FOUND_GREEN_THRESHOLD = bot.Time(100)
+
 var followLine = Behaviour{ 
 	Setup: func() {
 		state_machine.Add(state_machine.State{
 			Name: "follow_line.follow",
 			Enter: func() {
+				followLineFoundGreenCount = 0
 				followLineLostCount = 0
 			},
 			Update: func() {
@@ -24,7 +28,15 @@ var followLine = Behaviour{
 				bot.DriveMotorLeft.Run(left)
 				bot.DriveMotorRight.Run(right)
 
-				if (helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN) && helper.MiddleError() < FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY {
+				// if (helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN) && helper.MiddleError() < FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY {
+				// 	state_machine.Transition("green_turn.verify")
+				// }
+
+				if helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN {
+					followLineFoundGreenCount += 1
+				}
+
+				if followLineFoundGreenCount > FOLLOW_LINE_FOUND_GREEN_THRESHOLD {
 					state_machine.Transition("green_turn.verify")
 				}
 
