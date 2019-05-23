@@ -5,13 +5,13 @@ import (
 )
 
 const (
-	// PROPORTIONAL = 400.0
-	// INTEGRAL     = 0.4
-	// DERIVATIVE   = 3000.0
+  // PROPORTIONAL = 585
+	// INTEGRAL     = 1.43
+	// DERIVATIVE  = 2950
 
 	PROPORTIONAL = 585
-	INTEGRAL     = 1.44
-	DERIVATIVE   = 2900
+	INTEGRAL     = 1.43
+	DERIVATIVE   = 2950
 
 	BASE_SPEED       = 250
 	HARD_TURN_VALUE  = 0.25
@@ -36,19 +36,19 @@ func PID() (int, int) {
 	left := min(max(-1000, BASE_SPEED + int(speed)), 1000)
 	right := min(max(-1000, BASE_SPEED - int(speed)), 1000)
 
-	if LeftError() < HARD_TURN_VALUE {
-		left = HARD_TURN_OFFSET - HARD_TURN_SPEED
-		right = HARD_TURN_OFFSET + HARD_TURN_SPEED
-	}
-
-	if RightError() < HARD_TURN_VALUE {
-		left = HARD_TURN_OFFSET + HARD_TURN_SPEED
-		right = HARD_TURN_OFFSET - HARD_TURN_SPEED
-	}
-
-	if MiddleError() > RESET_THRESHOLD {
-		integral = 0
-	}
+	// if LeftError() < HARD_TURN_VALUE {
+	// 	left = HARD_TURN_OFFSET - HARD_TURN_SPEED
+	// 	right = HARD_TURN_OFFSET + HARD_TURN_SPEED
+	// }
+  //
+	// if RightError() < HARD_TURN_VALUE {
+	// 	left = HARD_TURN_OFFSET + HARD_TURN_SPEED
+	// 	right = HARD_TURN_OFFSET - HARD_TURN_SPEED
+	// }
+  //
+	// if MiddleError() > RESET_THRESHOLD {
+	// 	integral = 0
+	// }
 
 	return left, right
 }
