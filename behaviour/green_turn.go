@@ -1,7 +1,6 @@
 package behaviour
 
 import (
-	"fmt"
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/helper"
 	"github.com/liam-b/robocup-2019/state_machine"
@@ -80,8 +79,8 @@ var greenTurn = Behaviour{
 				greenTurnEndWait = 0
 			},
 			Update: func() {
-				bot.DriveMotorLeft.Run(GREEN_TURN_INNER_SPEED)
-				bot.DriveMotorRight.Run(GREEN_TURN_OUTER_SPEED)
+				bot.DriveMotorLeft.Run(GREEN_TURN_OUTER_SPEED)
+				bot.DriveMotorRight.Run(GREEN_TURN_INNER_SPEED)
 
 				greenTurnEndWait += 1
 				if greenTurnEndWait > GREEN_TURN_END_WAIT_LIMIT {
