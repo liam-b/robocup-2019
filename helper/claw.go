@@ -27,21 +27,25 @@ var claw = Helper{
 }
 
 func OpenClaw() {
-	bot.ClawMotor.RunToPositionAndCoast(CLAW_FUDGE, CLAW_SPEED)
+	bot.ClawMotor.RunToAbsolutePositionAndCoast(CLAW_FUDGE, CLAW_SPEED)
 }
 
 func CloseClaw() {
-	bot.ClawMotor.RunToPositionAndHold(-CLAW_DEGREES, CLAW_SPEED)
+	bot.ClawMotor.RunToAbsolutePositionAndHold(-CLAW_DEGREES, CLAW_SPEED)
 }
 
 func ReleaseClaw() {
-	bot.ClawMotor.RunToPositionAndHold(-CLAW_DEGREES + CLAW_RELEASE_DEGREES, CLAW_SPEED)
+	bot.ClawMotor.RunToAbsolutePositionAndHold(-CLAW_DEGREES + CLAW_RELEASE_DEGREES, CLAW_SPEED)
 }
 
 func RaiseClaw() {
-	bot.ClawElevatorMotor.RunToPositionAndHold(-CLAW_ELEVATOR_DEGREES, CLAW_ELEVATOR_SPEED)
+	bot.ClawElevatorMotor.RunToAbsolutePositionAndHold(-CLAW_ELEVATOR_DEGREES, CLAW_ELEVATOR_SPEED)
 }
 
 func LowerClaw() {
-	bot.ClawElevatorMotor.RunToPositionAndCoast(CLAW_FUDGE, CLAW_ELEVATOR_SPEED)
+	bot.ClawElevatorMotor.RunToAbsolutePositionAndCoast(CLAW_FUDGE, CLAW_ELEVATOR_SPEED)
+}
+
+func IsClawClosed() bool {
+	return bot.ClawMotor.StateContains("holding")
 }

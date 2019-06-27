@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	CYCLE_FREQUENCY = 60
+	CYCLE_FREQUENCY = 50
 )
 
 var (
@@ -75,7 +75,7 @@ func Setup() {
 	ColorSensorLeft.Setup()
 	ColorSensorMiddle.Setup()
 	ColorSensorRight.Setup()
-	// GyroSensor.Setup()
+	GyroSensor.Setup()
 	UltrasonicSensor.Setup()
 
 	DriveMotorLeft.Setup()
@@ -104,7 +104,7 @@ func Cleanup() {
 	ColorSensorLeft.Cleanup()
 	ColorSensorMiddle.Cleanup()
 	ColorSensorRight.Cleanup()
-	// GyroSensor.Cleanup()
+	GyroSensor.Cleanup()
 	UltrasonicSensor.Cleanup()
 
 	DriveMotorLeft.Cleanup()

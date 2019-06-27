@@ -6,7 +6,8 @@ var behaviours = []Behaviour{
 	followLine,
 	greenTurn,
 	waterTower,
-	// pause,
+	chemicalSpill,
+	pause,
 }
 
 type Behaviour struct {

@@ -24,7 +24,9 @@ func (sensor GyroSensor) New() GyroSensor {
 
 func (sensor GyroSensor) Setup() {}
 
-func (sensor GyroSensor) Update() {
+func (sensor GyroSensor) Cleanup() {}
+
+func (sensor *GyroSensor) Update() {
 	sensor.cachedRotation += sensor.getRotation()
 }
 
@@ -32,11 +34,15 @@ func (sensor GyroSensor) Rotation() int {
 	return sensor.cachedRotation
 }
 
-func (sensor GyroSensor) Destroy() {
+func (sensor *GyroSensor) Reset() {
+	sensor.cachedRotation = 0
+}
+
+func (sensor *GyroSensor) Destroy() {
 	sensor.device.Destroy()
 }
 
-func (sensor GyroSensor) getRotation() int {
+func (sensor *GyroSensor) getRotation() int {
 	valueLow, err := sensor.device.ReadByte(GYRO_SENSOR_ROTATION_REGISTER)
 	if err != nil {
 		logger.Error("gyro sensor: failed to read rotation")

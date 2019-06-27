@@ -9,11 +9,12 @@ import (
 const GREEN_TURN_JUNCTION_INTENSNITY = 0.3
 const GREEN_TURN_JUNCTION_SPEED = 200
 const GREEN_TURN_INNER_SPEED = -150
-const GREEN_TURN_OUTER_SPEED = 200
+const GREEN_TURN_OUTER_SPEED = 100
 const GREEN_TURN_EXIT_INTENSNITY = 0.6
 
 var greenTurnEndWait = 0
-var GREEN_TURN_END_WAIT_LIMIT = bot.Time(800)
+var GREEN_TURN_END_WAIT_LIMIT = bot.Time(400)
+const GREEN_TURN_MIDDLE_JUNCTION_INTENSNITY = 0.2
 
 var greenTurnEndCooldown = 0
 var GREEN_TURN_END_COOLDOWN_LIMIT = bot.Time(1000)
@@ -55,7 +56,7 @@ var greenTurn = Behaviour{
 				bot.DriveMotorRight.Run(GREEN_TURN_OUTER_SPEED)
 
 				greenTurnEndWait += 1
-				if greenTurnEndWait > GREEN_TURN_END_WAIT_LIMIT {
+				if greenTurnEndWait > GREEN_TURN_END_WAIT_LIMIT && helper.MiddleError() < GREEN_TURN_MIDDLE_JUNCTION_INTENSNITY {
 					state_machine.Transition("green_turn.cooldown")
 				}
 			},
@@ -83,7 +84,7 @@ var greenTurn = Behaviour{
 				bot.DriveMotorRight.Run(GREEN_TURN_INNER_SPEED)
 
 				greenTurnEndWait += 1
-				if greenTurnEndWait > GREEN_TURN_END_WAIT_LIMIT {
+				if greenTurnEndWait > GREEN_TURN_END_WAIT_LIMIT && helper.MiddleError() < GREEN_TURN_MIDDLE_JUNCTION_INTENSNITY {
 					state_machine.Transition("green_turn.cooldown")
 				}
 			},
@@ -92,6 +93,7 @@ var greenTurn = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "green_turn.cooldown",
 			Enter: func() {
+				helper.ResetPID()
 				greenTurnEndCooldown = 0
 			},
 			Update: func() {

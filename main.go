@@ -45,16 +45,13 @@ func start() {
 	state_machine.Transition("follow_line.follow") 
 	// state_machine.Transition("water_tower.verify")
 
-
 	time.Sleep(time.Second)
-
-	// file, _ = os.Create("./graph.csv")
 }
 
-// func loop(frequency float64, cycle int64) {
 func loop() {
 	bot.Update()
 	state_machine.Update()
+	
 	// logger.Debug(bot.UltrasonicSensor.Distance())
 	// logger.Debug(bot.ColorSensorLeft.Intensity(), bot.ColorSensorMiddle.Intensity(), bot.ColorSensorRight.Intensity())
 

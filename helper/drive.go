@@ -25,8 +25,8 @@ func RunDrive(speed int) {
 }
 
 func RunToPositionDrive(position int, speed int) {
-	bot.DriveMotorLeft.RunToPositionAndBrake(position, speed)
-	bot.DriveMotorRight.RunToPositionAndBrake(position, speed)
+	bot.DriveMotorLeft.RunToAbsolutePositionAndBrake(position, speed)
+	bot.DriveMotorRight.RunToAbsolutePositionAndBrake(position, speed)
 }
 
 func StopDrive(speed int) {
@@ -42,4 +42,8 @@ func TurnTankDrive(left int, right int) {
 func TurnRatioDrive(ratio float64, speed int) {
 	bot.DriveMotorLeft.Run(int(ratio * float64(speed)))
 	bot.DriveMotorRight.Run(int(1.0 / ratio * float64(speed)))
+}
+
+func IsDriveHolding() bool {
+	return bot.DriveMotorLeft.StateContains("holding") && bot.DriveMotorRight.StateContains("holding")
 }

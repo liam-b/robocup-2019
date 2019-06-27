@@ -8,16 +8,19 @@ import (
 const (
 	FOLLOW_WHITE_INTENSITY = 44
 	FOLLOW_BLACK_INTENSITY = 15
+	FOLLOW_MIDDLE_WHITE_INTENSITY = 21
+	FOLLOW_MIDDLE_BLACK_INTENSITY = 5
 	FOLLOW_EXPONENT = 1.1
 
 	COLOR_BLACK_INTENSITY = 15
-	COLOR_GREEN_INTENSITY_DIFFERENCE = 7
-
+	COLOR_SILVER_INTENSITY = 50
+	COLOR_GREEN_INTENSITY_DIFFERENCE = 8
 	COLOR_MIDDLE_BLACK_INTENSITY = 35
 
 	COLOR_BLACK = 0
 	COLOR_WHITE = 1
-	COLOR_GREEN = 2
+	COLOR_SILVER = 2
+	COLOR_GREEN = 3
 )
 
 func LeftColor() int {
@@ -59,26 +62,27 @@ func LineError() float64 {
 
 func LeftError() float64 {
 	_, green, _ := bot.ColorSensorLeft.RGB();
-	return NormalisedSensor(green)
+	return NormalisedSensor(green, FOLLOW_WHITE_INTENSITY, FOLLOW_BLACK_INTENSITY)
 }
 
 func RightError() float64 {
 	_, green, _ := bot.ColorSensorRight.RGB();
-	return NormalisedSensor(green)
+	return NormalisedSensor(green, FOLLOW_WHITE_INTENSITY, FOLLOW_BLACK_INTENSITY)
 }
 
 func MiddleError() float64 {
-	return NormalisedSensor(bot.ColorSensorMiddle.Intensity())
+	return NormalisedSensor(bot.ColorSensorMiddle.Intensity(), FOLLOW_MIDDLE_WHITE_INTENSITY, FOLLOW_MIDDLE_BLACK_INTENSITY)
 }
 
-func NormalisedSensor(value int) float64 {
-	raw := ScaledSensor(value)
+func NormalisedSensor(value int, whiteIntensity int, blackIntensity int) float64 {
+	raw := ScaledSensor(value, whiteIntensity, blackIntensity)
 
-	normalised := math.Acos(1.0 - (2 * raw)) / 3
+	normalised := math.Acos(1.0 - (2.0 * raw)) / 3.0
 	return minf(maxf(0.0, normalised), 1.0)
 }
 
-func ScaledSensor(value int) float64 {
-	raw := float64(value - FOLLOW_BLACK_INTENSITY) / float64(FOLLOW_WHITE_INTENSITY - FOLLOW_BLACK_INTENSITY)
+func ScaledSensor(value int, whiteIntensity int, blackIntensity int) float64 {
+	raw := float64(value - blackIntensity) / float64(whiteIntensity - blackIntensity)
 	return minf(maxf(0.0, raw), 1.0)
 }
+

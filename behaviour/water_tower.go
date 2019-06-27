@@ -11,11 +11,15 @@ import (
 var waterTower = Behaviour{
   Setup: func() {
     state_machine.Add(state_machine.State{
-      Name: "waterTower.verify",
+      Name: "water_tower.verify",
+      Enter: func() {
+        bot.DriveMotorLeft.RunToRelativePositionAndCoast(200, 100)
+        bot.DriveMotorRight.RunToRelativePositionAndCoast(200, 100)
+      },
       Update: func() {
-        if (bot.UltrasonicSensor.Distance() <= 20000) {
-          state_machine.Transition("waterTower.skrrrt")
-        }
+        // if (bot.UltrasonicSensor.Distance() <= 20000) {
+        //   state_machine.Transition("waterTower.skrrrt")
+        // }
         // logger.Trace(bot.UltrasonicSensor.Distance())
       },
     })

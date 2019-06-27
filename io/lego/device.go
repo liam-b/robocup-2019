@@ -11,6 +11,7 @@ type DeviceType int; const (
 
 var PATHS = map[DeviceType]string{
 	MotorDeviceType: "/sys/class/tacho-motor/",
+	// MotorDeviceType: "/Users/liam/src/current/robocup-2019/mock/",
 }
 
 type Device struct {
