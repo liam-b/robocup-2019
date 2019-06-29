@@ -17,7 +17,7 @@ import (
 var file *os.File
 
 func main() {
-	logger.Init(6, &state_machine.Current, &state_machine.Event)
+	logger.Init(5, &state_machine.Current, &state_machine.Event)
 	state_machine.Init()
 	bot.Init(start, exit, loop)
 }
@@ -31,6 +31,7 @@ func start() {
 	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
 	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
 	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
+	bot.GyroSensor = i2c.GyroSensor{}.New()
 	bot.UltrasonicSensor = i2c.UltrasonicSensor{}.New()
 
 	bot.DriveMotorLeft = lego.Motor{Port: lego.PORT_MA}.New()
@@ -43,14 +44,18 @@ func start() {
 	behaviour.Setup()
 
 	state_machine.Transition("follow_line.follow") 
-	// state_machine.Transition("water_tower.verify")
-
 	time.Sleep(time.Second)
 }
 
 func loop() {
 	bot.Update()
 	state_machine.Update()
+
+	// logger.Debug(bot.DriveMotorLeft.Port, bot.DriveMotorLeft.Speed())
+
+	logger.Debug(bot.UltrasonicSensor.Distance())
+
+	// logger.Debug(helper.LeftColor(), helper.MiddleColor(), helper.RightColor())
 	
 	// logger.Debug(bot.UltrasonicSensor.Distance())
 	// logger.Debug(bot.ColorSensorLeft.Intensity(), bot.ColorSensorMiddle.Intensity(), bot.ColorSensorRight.Intensity())
@@ -72,7 +77,7 @@ func exit() {
 	helper.Cleanup()
 	bot.Cleanup()
 
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Millisecond * 300)
 }
 
 func doSumCanStuff() {

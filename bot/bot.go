@@ -88,7 +88,7 @@ func Update() {
 	ColorSensorLeft.Update()
 	ColorSensorMiddle.Update()
 	ColorSensorRight.Update()
-	// GyroSensor.Update()
+	GyroSensor.Update()
 	UltrasonicSensor.Update()
 
 	DriveMotorLeft.Update()

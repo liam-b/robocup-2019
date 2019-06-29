@@ -8,8 +8,8 @@ const (
 	CLAW_SPEED = 400
 	CLAW_ELEVATOR_SPEED = 300
 
-	CLAW_DEGREES = 320
-	CLAW_RELEASE_DEGREES = 40
+	CLAW_DEGREES = 330
+	CLAW_RELEASE_DEGREES = 60
 	CLAW_ELEVATOR_DEGREES = 520
 	CLAW_FUDGE = 5
 )
@@ -47,5 +47,9 @@ func LowerClaw() {
 }
 
 func IsClawClosed() bool {
-	return bot.ClawMotor.StateContains("holding")
+	return bot.ClawMotor.IsStopped()
+}
+
+func IsClawRaised() bool {
+	return bot.ClawElevatorMotor.IsStopped()
 }

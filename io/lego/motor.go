@@ -1,14 +1,21 @@
 package lego
 
-import "strings"
+import (
+	"strings"
+)
+
+const MOTOR_MOVING_COUNT_LIMIT = 20
 
 type Motor struct {
 	Port PortAddress
 	device TachoMotor
+
+	movingCount int
 }
 
 func (motor Motor) New() Motor {
 	motor.device = TachoMotor{Port: motor.Port}.New()
+	motor.movingCount = -1
 	return motor
 }
 
@@ -17,6 +24,9 @@ func (motor *Motor) Setup() {
 }
 
 func (motor *Motor) Update() {
+	if motor.movingCount >= 0 {
+		motor.movingCount += 1
+	}
 	motor.device.Update()
 }
 
@@ -28,6 +38,7 @@ func (motor *Motor) Cleanup() {
 func (motor *Motor) Run(speed int) {
 	motor.device.SetSpeed(speed)
 	motor.device.SetCommand("run-forever")
+	motor.movingCount = 0
 }
 
 func (motor *Motor) RunToAbsolutePositionAndBrake(position int, speed int) {
@@ -92,9 +103,18 @@ func (motor *Motor) StateContains(search string) bool {
 	return false
 }
 
+func (motor *Motor) Speed() int {
+	return motor.device.GetSpeed()
+}
+
+func (motor *Motor) IsStopped() bool {
+	return motor.device.GetSpeed() == 0 && motor.movingCount >= MOTOR_MOVING_COUNT_LIMIT
+}
+
 func (motor *Motor) runToPosition(command string, position int, speed int, stopAction string) {
 	motor.device.SetTargetPosition(position)
 	motor.device.SetSpeed(speed)
 	motor.device.SetStopAction(stopAction)
 	motor.device.SetCommand(command)
+	motor.movingCount = 0
 }

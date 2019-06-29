@@ -3,67 +3,104 @@ package behaviour
 import (
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/helper"
-	"github.com/liam-b/robocup-2019/logger"
 	"github.com/liam-b/robocup-2019/state_machine"
 )
 
 const CHEMICAL_SPILL_VERIFY_SPEED = 50
-const CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION = 100
-const CHEMICAL_SPILL_VERIFY_SILVER_COLOR = 35
+const CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION = 20
+const CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY = 35
+const CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY = 30
+var chemicalSpillAlignAttemptTimer = 0
+var CHEMICAL_SPILL_ALIGNMENT_ATTEMPT_TIME_LIMIT = bot.Time(7000)
 
 const CHEMICAL_SPILL_ENTER_SPEED = 200
-const CHEMICAL_SPILL_ENTER_POSITION = 600
+const CHEMICAL_SPILL_ENTER_POSITION = 350
 
-const CHEMICAL_SPILL_SEARCH_SPEED = 70
-const CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 4500
+const CHEMICAL_SPILL_SEARCH_SPEED = 100
+const CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 6500
 var chemicalSpillSearchFoundCount = 0
-var CHEMICAL_SPILL_SEARCH_FOUND_LIMIT = bot.Time(300)
+var chemicalSpillSearchLostCount = 0
+var CHEMICAL_SPILL_SEARCH_FOUND_LIMIT = bot.Time(150)
+var chemicalSpillSearchFoundRotation = 0
+var chemicalSpillSearchLostRotation = 0
+var chemicalSpillSearchAlignRotation = 0
+var chemicalSpillSearchPosition = 0
 
-const CHEMICAL_SPILL_CAPTURE_SPEED = 200
-const CHEMICAL_SPILL_APPROACH_DISTANCE_THRESHOLD = 1000
-var chemicalSpillApproachFoundCount = 0
-var CHEMICAL_SPILL_APPROACH_FOUND_LIMIT = bot.Time(100)
+const CHEMICAL_SPILL_CAPTURE_SPEED = 150
+const CHEMICAL_SPILL_CAPTURE_POSITION_LIMIT = 380
+const CHEMICAL_SPILL_APPROACH_DISTANCE_THRESHOLD = 1800
+var chemicalSpillCaptureApproachFoundCount = 0
+var CHEMICAL_SPILL_CAPTURE_APPROACH_FOUND_LIMIT = bot.Time(100)
 
-const CHEMICAL_SPILL_LIFT_SPEED = 100
-const CHEMICAL_SPILL_LIFT_POSITION = 400
+const CHEMICAL_SPILL_APPROACH_SPEED = 150
+const CHEMICAL_SPILL_APPROACH_POSITION = 200
 
 var chemicalSpillDropCount = 0
-var CHEMICAL_SPILL_DROP_OPEN_LIMIT = bot.Time(100)
-var CHEMICAL_SPILL_RETREAT_LIMIT = bot.Time(300)
+var CHEMICAL_SPILL_DROP_OPEN_LIMIT = bot.Time(1000)
+var CHEMICAL_SPILL_DROP_RETREAT_LIMIT = bot.Time(1000)
+
+const CHEMICAL_SPILL_EXIT_SPIN_POSITION = 500
 
 var chemicalSpill = Behaviour{ 
 	Setup: func() {
 		state_machine.Add(state_machine.State{
-			Name: "chemical_spill.overshoot",
+			Name: "chemical_spill.verify",
 			Enter: func() {
+				chemicalSpillAlignAttemptTimer = 0
 				bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
 				bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
 			},
 			Update: func() {
-				logger.Debug(bot.DriveMotorLeft.State(), bot.DriveMotorLeft.State())
-				if helper.IsDriveHolding() {
-					state_machine.Transition("chemical_spill.align")
+				if helper.IsDriveStopped() {
+					state_machine.Transition("chemical_spill.align.backward")
 				}
 			},
 		})
 
 		state_machine.Add(state_machine.State{
-			Name: "chemical_spill.align",
+			Name: "chemical_spill.align.backward",
 			Enter: func() {
 				bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_VERIFY_SPEED)
 				bot.DriveMotorRight.Run(-CHEMICAL_SPILL_VERIFY_SPEED)
 			},
 			Update: func() {
-				if bot.ColorSensorLeft.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_COLOR {
+				chemicalSpillAlignAttemptTimer += 1
+				if bot.ColorSensorLeft.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
 					bot.DriveMotorLeft.Hold()
 				}
 
-				if bot.ColorSensorRight.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_COLOR {
+				if bot.ColorSensorRight.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
 					bot.DriveMotorRight.Hold()
 				}
 
-				if helper.IsDriveHolding() {
-					state_machine.Transition("chemical_spill.enter")
+				if helper.IsDriveStopped() {
+					if chemicalSpillAlignAttemptTimer >= CHEMICAL_SPILL_ALIGNMENT_ATTEMPT_TIME_LIMIT {
+						state_machine.Transition("chemical_spill.enter")
+					} else {
+						state_machine.Transition("chemical_spill.align.forward")
+					}
+				}
+			},
+		})
+
+		state_machine.Add(state_machine.State{
+			Name: "chemical_spill.align.forward",
+			Enter: func() {
+				bot.DriveMotorLeft.Run(CHEMICAL_SPILL_VERIFY_SPEED)
+				bot.DriveMotorRight.Run(CHEMICAL_SPILL_VERIFY_SPEED)
+			},
+			Update: func() {
+				chemicalSpillAlignAttemptTimer += 1
+				if bot.ColorSensorLeft.Intensity() < CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY {
+					bot.DriveMotorLeft.Hold()
+				}
+
+				if bot.ColorSensorRight.Intensity() < CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY {
+					bot.DriveMotorRight.Hold()
+				}
+
+				if helper.IsDriveStopped() {
+					state_machine.Transition("chemical_spill.align.backward")
 				}
 			},
 		})
@@ -75,7 +112,7 @@ var chemicalSpill = Behaviour{
 				bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
 			},
 			Update: func() {
-				if helper.IsDriveHolding() {
+				if helper.IsDriveStopped() {
 					state_machine.Transition("chemical_spill.capture.search")
 				}
 			},
@@ -84,13 +121,13 @@ var chemicalSpill = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "chemical_spill.capture.search",
 			Enter: func() {
+				bot.GyroSensor.Reset()
+				bot.DriveMotorLeft.ResetPosition()
 				bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
 				bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
-				bot.GyroSensor.Reset()
 				chemicalSpillSearchFoundCount = 0
 			},
 			Update: func() {
-				logger.Debug(bot.UltrasonicSensor.Distance())
 				if bot.UltrasonicSensor.Distance() <= CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD {
 					chemicalSpillSearchFoundCount += 1
 				} else {
@@ -98,6 +135,45 @@ var chemicalSpill = Behaviour{
 				}
 
 				if chemicalSpillSearchFoundCount > CHEMICAL_SPILL_SEARCH_FOUND_LIMIT {
+					state_machine.Transition("chemical_spill.capture.overshoot")
+				}
+			},
+			Exit: func() {
+				chemicalSpillSearchFoundRotation = bot.GyroSensor.Rotation()
+			},
+		})
+
+		state_machine.Add(state_machine.State{
+			Name: "chemical_spill.capture.overshoot",
+			Enter: func() {
+				chemicalSpillSearchLostCount = 0
+			},
+			Update: func() {
+				if bot.UltrasonicSensor.Distance() >= CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD {
+					chemicalSpillSearchLostCount += 1
+				} else {
+					chemicalSpillSearchLostCount /= 2
+				}
+
+				if chemicalSpillSearchLostCount > CHEMICAL_SPILL_SEARCH_FOUND_LIMIT {
+					state_machine.Transition("chemical_spill.capture.align")
+				}
+			},
+			Exit: func() {
+				chemicalSpillSearchLostRotation = bot.GyroSensor.Rotation()
+			},
+		})
+
+		state_machine.Add(state_machine.State{
+			Name: "chemical_spill.capture.align",
+			Enter: func() {
+				bot.DriveMotorLeft.Run(CHEMICAL_SPILL_SEARCH_SPEED)
+				bot.DriveMotorRight.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
+				chemicalSpillSearchAlignRotation = (chemicalSpillSearchFoundRotation * 2 + chemicalSpillSearchLostRotation) / 3
+			},
+			Update: func() {
+				if bot.GyroSensor.Rotation() < chemicalSpillSearchAlignRotation {
+					chemicalSpillSearchPosition = bot.DriveMotorLeft.Position()
 					state_machine.Transition("chemical_spill.capture.approach")
 				}
 			},
@@ -108,20 +184,18 @@ var chemicalSpill = Behaviour{
 			Enter: func() {
 				bot.DriveMotorLeft.ResetPosition()
 				bot.DriveMotorRight.ResetPosition()
-
-				bot.DriveMotorLeft.Run(CHEMICAL_SPILL_CAPTURE_SPEED)
-				bot.DriveMotorRight.Run(CHEMICAL_SPILL_CAPTURE_SPEED)
-				chemicalSpillApproachFoundCount = 0
+				bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_CAPTURE_POSITION_LIMIT, CHEMICAL_SPILL_CAPTURE_SPEED)
+				bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_CAPTURE_POSITION_LIMIT, CHEMICAL_SPILL_CAPTURE_SPEED)
+				chemicalSpillCaptureApproachFoundCount = 0
 			},
 			Update: func() {
-				logger.Debug(bot.UltrasonicSensor.Distance())
 				if bot.UltrasonicSensor.Distance() <= CHEMICAL_SPILL_APPROACH_DISTANCE_THRESHOLD {
-					chemicalSpillApproachFoundCount += 1
+					chemicalSpillCaptureApproachFoundCount += 1
 				} else {
-					chemicalSpillApproachFoundCount /= 2
+					chemicalSpillCaptureApproachFoundCount /= 2
 				}
 
-				if chemicalSpillApproachFoundCount > CHEMICAL_SPILL_APPROACH_FOUND_LIMIT {
+				if chemicalSpillCaptureApproachFoundCount > CHEMICAL_SPILL_CAPTURE_APPROACH_FOUND_LIMIT || helper.IsDriveStopped() {
 					state_machine.Transition("chemical_spill.capture.grab")
 				}
 			},
@@ -130,8 +204,8 @@ var chemicalSpill = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "chemical_spill.capture.grab",
 			Enter: func() {
-				bot.DriveMotorLeft.Hold()
-				bot.DriveMotorRight.Hold()
+				bot.DriveMotorLeft.Run(CHEMICAL_SPILL_VERIFY_SPEED)
+				bot.DriveMotorRight.Run(CHEMICAL_SPILL_VERIFY_SPEED)
 				helper.CloseClaw()
 			},
 			Update: func() {
@@ -144,11 +218,11 @@ var chemicalSpill = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "chemical_spill.capture.return",
 			Enter: func() {
-				bot.DriveMotorLeft.RunToAbsolutePositionAndHold(0, -CHEMICAL_SPILL_CAPTURE_SPEED)
-				bot.DriveMotorRight.RunToAbsolutePositionAndHold(0, -CHEMICAL_SPILL_CAPTURE_SPEED)
+				bot.DriveMotorLeft.RunToAbsolutePositionAndHold(0, CHEMICAL_SPILL_CAPTURE_SPEED)
+				bot.DriveMotorRight.RunToAbsolutePositionAndHold(0, CHEMICAL_SPILL_CAPTURE_SPEED)
 			},
 			Update: func() {
-				if helper.IsDriveHolding() {
+				if helper.IsDriveStopped() {
 					state_machine.Transition("chemical_spill.save.rotate")
 				}
 			},
@@ -157,11 +231,17 @@ var chemicalSpill = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "chemical_spill.save.rotate",
 			Enter: func() {
+				bot.DriveMotorLeft.ResetPosition()
 				bot.DriveMotorLeft.Run(CHEMICAL_SPILL_SEARCH_SPEED)
 				bot.DriveMotorRight.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
 			},
 			Update: func() {
-				if bot.GyroSensor.Rotation() < 0 {
+				if bot.DriveMotorLeft.Position() >= -chemicalSpillSearchPosition {
+					bot.DriveMotorLeft.Hold()
+					bot.DriveMotorRight.Hold()
+				}
+
+				if helper.IsDriveStopped() {
 					state_machine.Transition("chemical_spill.save.lift")
 				}
 			},
@@ -170,12 +250,23 @@ var chemicalSpill = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "chemical_spill.save.lift",
 			Enter: func() {
-				bot.DriveMotorLeft.RunToAbsolutePositionAndHold(CHEMICAL_SPILL_LIFT_POSITION, CHEMICAL_SPILL_LIFT_SPEED)
-				bot.DriveMotorRight.RunToAbsolutePositionAndHold(CHEMICAL_SPILL_LIFT_POSITION, CHEMICAL_SPILL_LIFT_SPEED)
 				helper.RaiseClaw()
 			},
 			Update: func() {
-				if helper.IsDriveHolding() {
+				if helper.IsClawRaised() {
+					state_machine.Transition("chemical_spill.save.approach")
+				}
+			},
+		})
+
+		state_machine.Add(state_machine.State{
+			Name: "chemical_spill.save.approach",
+			Enter: func() {
+				bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_APPROACH_POSITION, CHEMICAL_SPILL_APPROACH_SPEED)
+				bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_APPROACH_POSITION, CHEMICAL_SPILL_APPROACH_SPEED)
+			},
+			Update: func() {
+				if helper.IsDriveStopped() {
 					state_machine.Transition("chemical_spill.save.drop")
 				}
 			},
@@ -194,8 +285,43 @@ var chemicalSpill = Behaviour{
 					helper.OpenClaw()
 				}
 
-				if chemicalSpillDropCount > CHEMICAL_SPILL_RETREAT_LIMIT {
-					state_machine.Transition("chemical_spill.save.retreat")
+				if chemicalSpillDropCount > CHEMICAL_SPILL_DROP_OPEN_LIMIT + CHEMICAL_SPILL_DROP_RETREAT_LIMIT {
+					state_machine.Transition("chemical_spill.exit")
+				}
+			},
+		})
+
+		state_machine.Add(state_machine.State{
+			Name: "chemical_spill.exit",
+			Enter: func() {
+				bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_ENTER_SPEED)
+				bot.DriveMotorRight.Run(-CHEMICAL_SPILL_ENTER_SPEED)
+				helper.LowerClaw()
+			},
+			Update: func() {
+				if bot.ColorSensorLeft.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
+					bot.DriveMotorLeft.Hold()
+				}
+
+				if bot.ColorSensorRight.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
+					bot.DriveMotorRight.Hold()
+				}
+
+				if helper.IsDriveStopped() {
+					state_machine.Transition("chemical_spill.exit.spin")
+				}
+			},
+		})
+
+		state_machine.Add(state_machine.State{
+			Name: "chemical_spill.exit.spin",
+			Enter: func() {
+				bot.DriveMotorLeft.RunToRelativePositionAndHold(-CHEMICAL_SPILL_EXIT_SPIN_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+				bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_EXIT_SPIN_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+			},
+			Update: func() {
+				if helper.IsDriveStopped() {
+					state_machine.Transition("chemical_spill.!!!")
 				}
 			},
 		})
