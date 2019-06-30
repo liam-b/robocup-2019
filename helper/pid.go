@@ -5,7 +5,7 @@ import (
 )
 
 const (
-  // PROPORTIONAL = 585
+  // PROPORTIONAL = 2000
 	// INTEGRAL     = 1.43
 	// DERIVATIVE  = 2950
 

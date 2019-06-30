@@ -20,7 +20,7 @@ type TachoMotor struct {
 func (device TachoMotor) New() TachoMotor {
 	device.device = Device{Port: device.Port, Type: MotorDeviceType}.New()
 	device.buffer = map[string]string{"speed_sp": "", "position": "", "position_sp": "", "stop_action": ""}
-	device.cache = map[string]string{"position": "", "state": ""}
+	device.cache = map[string]string{"position": "", "state": "", "speed": ""}
 	device.command = ""
 
 	return device
@@ -54,7 +54,7 @@ func (device TachoMotor) SetPosition(position int) {
 }
 
 func (device TachoMotor) GetPosition() int {
-	position, _ := strconv.Atoi(device.cache["position"])
+	position, _ := strconv.Atoi(strings.ReplaceAll(device.cache["position"], "\n", ""))
 	return position
 }
 
@@ -65,6 +65,11 @@ func (device TachoMotor) SetTargetPosition(position int) {
 func (device TachoMotor) GetState() []string {
 	state, _ := device.cache["state"]
 	return strings.Split(state, " ")
+}
+
+func (device TachoMotor) GetSpeed() int {
+	speed, _ := strconv.Atoi(strings.ReplaceAll(device.cache["speed"], "\n", ""))
+	return speed
 }
 
 func (device *TachoMotor) SetStopAction(action string) {
@@ -83,11 +88,13 @@ func (device *TachoMotor) setBufferAttributes() {
 		}
 	}
 
-	err := device.device.SetAttribute("command", device.command)
-	if err != nil {
-		device.handleError("failed to send command")
-	} else {
-		device.command = ""
+	if (device.command != "") {
+		err := device.device.SetAttribute("command", device.command)
+		if err != nil {
+			device.handleError("failed to send command")
+		} else {
+			device.command = ""
+		}
 	}
 }
 

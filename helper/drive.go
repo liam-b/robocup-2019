@@ -4,9 +4,6 @@ import (
 	"github.com/liam-b/robocup-2019/bot"
 )
 
-const (
-)
-
 var drive = Helper{
 	Setup: func() {
 		bot.DriveMotorLeft.Coast()
@@ -44,6 +41,6 @@ func TurnRatioDrive(ratio float64, speed int) {
 	bot.DriveMotorRight.Run(int(1.0 / ratio * float64(speed)))
 }
 
-func IsDriveHolding() bool {
-	return bot.DriveMotorLeft.StateContains("holding") && bot.DriveMotorRight.StateContains("holding")
+func IsDriveStopped() bool {
+	return bot.DriveMotorLeft.IsStopped() && bot.DriveMotorRight.IsStopped()
 }

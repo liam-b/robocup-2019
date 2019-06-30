@@ -6,7 +6,7 @@ import (
 	"github.com/liam-b/robocup-2019/state_machine"
 )
 
-const FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY = 0.1
+const FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY = 0.4
 const FOLLOW_LINE_LOST_RECAPTURE_SPEED = 200
 
 var followLineFoundGreenCount = 0
@@ -36,13 +36,13 @@ var followLine = Behaviour{
 				// 	state_machine.Transition("pause.wait")
 				// }
 
-				if helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN {
+				if (helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN) && helper.MiddleError() < FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY && !(helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN) {
 					followLineFoundGreenCount += 1
 				} else {
 					followLineFoundGreenCount /= 2
 				} 
 
-				if followLineFoundGreenCount > FOLLOW_LINE_FOUND_GREEN_THRESHOLD && helper.MiddleError() < FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY {
+				if followLineFoundGreenCount > FOLLOW_LINE_FOUND_GREEN_THRESHOLD {
 					state_machine.Transition("green_turn.verify")
 				}
 
@@ -53,7 +53,7 @@ var followLine = Behaviour{
 				} 
 
 				if followLineFoundChemicalSpillCount > FOLLOW_LINE_FOUND_CHEMICAL_SPILL_THRESHOLD {
-					state_machine.Transition("chemical_spill.overshoot")
+					state_machine.Transition("chemical_spill.verify")
 				}
 
 				if helper.LeftColor() == helper.COLOR_WHITE && helper.RightColor() == helper.COLOR_WHITE && helper.MiddleColor() == helper.COLOR_WHITE {
