@@ -321,9 +321,22 @@ var chemicalSpill = Behaviour{
 			},
 			Update: func() {
 				if helper.IsDriveStopped() {
-					state_machine.Transition("chemical_spill.!!!")
+					state_machine.Transition("chemical_spill.exit.backup")
 				}
 			},
 		})
+
+		// state_machine.Add(state_machine.State{
+		// 	Name: "chemical_spill.exit.spin",
+		// 	Enter: func() {
+		// 		bot.DriveMotorLeft.RunToRelativePositionAndHold(-CHEMICAL_SPILL_EXIT_SPIN_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+		// 		bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_EXIT_SPIN_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+		// 	},
+		// 	Update: func() {
+		// 		if helper.IsDriveStopped() {
+		// 			state_machine.Transition("chemical_spill.exit.backup")
+		// 		}
+		// 	},
+		// })
 	},
 }

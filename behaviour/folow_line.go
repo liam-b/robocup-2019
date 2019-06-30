@@ -36,15 +36,15 @@ var followLine = Behaviour{
 				// 	state_machine.Transition("pause.wait")
 				// }
 
-				// if (helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN) && helper.MiddleError() < FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY && !(helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN) {
-				// 	followLineFoundGreenCount += 1
-				// } else {
-				// 	followLineFoundGreenCount /= 2
-				// } 
+				if (helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN) && helper.MiddleError() < FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY && !(helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN) {
+					followLineFoundGreenCount += 1
+				} else {
+					followLineFoundGreenCount /= 2
+				} 
 
-				// if followLineFoundGreenCount > FOLLOW_LINE_FOUND_GREEN_THRESHOLD {
-				// 	state_machine.Transition("green_turn.verify")
-				// }
+				if followLineFoundGreenCount > FOLLOW_LINE_FOUND_GREEN_THRESHOLD {
+					state_machine.Transition("green_turn.verify")
+				}
 
 				if helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN {
 					followLineFoundChemicalSpillCount += 1
