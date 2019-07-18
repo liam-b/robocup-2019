@@ -68,10 +68,7 @@ func (thread Thread) checkFrameDrop() {
 	}
 }
 
-func (thread *Thread) Stop() {
-	thread.running = false
-}
-
 func (thread *Thread) Destroy() {
+	thread.running = false
 	thread.alive = false
 }

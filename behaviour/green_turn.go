@@ -19,17 +19,29 @@ const GREEN_TURN_MIDDLE_JUNCTION_INTENSNITY = 0.3
 var greenTurnEndCooldown = 0
 var GREEN_TURN_END_COOLDOWN_LIMIT = bot.Time(1000)
 
+var greenTurnFoundChemicalSpillCount = 0
+var GREEN_TURN_FOUND_CHEMICAL_SPILL_THRESHOLD = bot.Time(50)
+
 var greenTurn = Behaviour{
 	Setup: func() {
 		state_machine.Add(state_machine.State{
 			Name: "green_turn.verify",
+			Enter: func() {
+				greenTurnFoundChemicalSpillCount = 0
+			},
 			Update: func() {
-				if (helper.LeftColor() == helper.COLOR_GREEN) {
+				if helper.LeftColor() == helper.COLOR_GREEN {
 					state_machine.Transition("green_turn.left")
 				}
 
-				if (helper.RightColor() == helper.COLOR_GREEN) {
+				if helper.RightColor() == helper.COLOR_GREEN {
 					state_machine.Transition("green_turn.right")
+				}
+
+				if helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN {
+					greenTurnFoundChemicalSpillCount += 1
+				} else {
+					greenTurnFoundChemicalSpillCount /= 2
 				}
 			},
 		})
@@ -42,6 +54,15 @@ var greenTurn = Behaviour{
 
 				if helper.LeftError() < GREEN_TURN_JUNCTION_INTENSNITY {
 					state_machine.Transition("green_turn.left_turn")
+				}
+
+				if helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN {
+					greenTurnFoundChemicalSpillCount += 1
+				} else {
+					greenTurnFoundChemicalSpillCount /= 2
+				}
+				if greenTurnFoundChemicalSpillCount > GREEN_TURN_FOUND_CHEMICAL_SPILL_THRESHOLD {
+					state_machine.Transition("chemical_spill.verify")
 				}
 			},
 		})
@@ -70,6 +91,15 @@ var greenTurn = Behaviour{
 
 				if helper.RightError() < GREEN_TURN_JUNCTION_INTENSNITY {
 					state_machine.Transition("green_turn.right_turn")
+				}
+
+				if helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN {
+					greenTurnFoundChemicalSpillCount += 1
+				} else {
+					greenTurnFoundChemicalSpillCount /= 2
+				}
+				if greenTurnFoundChemicalSpillCount > GREEN_TURN_FOUND_CHEMICAL_SPILL_THRESHOLD {
+					state_machine.Transition("chemical_spill.verify")
 				}
 			},
 		})

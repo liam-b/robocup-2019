@@ -14,10 +14,11 @@ var chemicalSpillAlignAttemptTimer = 0
 var CHEMICAL_SPILL_ALIGNMENT_ATTEMPT_TIME_LIMIT = bot.Time(7000)
 
 const CHEMICAL_SPILL_ENTER_SPEED = 200
-const CHEMICAL_SPILL_ENTER_POSITION = 350
+const CHEMICAL_SPILL_ENTER_POSITION = 580
 
-const CHEMICAL_SPILL_SEARCH_SPEED = 100
-const CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 6500
+const CHEMICAL_SPILL_SEARCH_SPEED = 70
+const CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 6200
+const CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 250
 var chemicalSpillSearchFoundCount = 0
 var chemicalSpillSearchLostCount = 0
 var CHEMICAL_SPILL_SEARCH_FOUND_LIMIT = bot.Time(150)
@@ -27,15 +28,20 @@ var chemicalSpillSearchAlignRotation = 0
 var chemicalSpillSearchPosition = 0
 
 const CHEMICAL_SPILL_CAPTURE_SPEED = 150
-const CHEMICAL_SPILL_CAPTURE_POSITION_LIMIT = 380
+const CHEMICAL_SPILL_CAPTURE_POSITION_LIMIT = 290
 const CHEMICAL_SPILL_APPROACH_DISTANCE_THRESHOLD = 1800
 var chemicalSpillCaptureApproachFoundCount = 0
 var CHEMICAL_SPILL_CAPTURE_APPROACH_FOUND_LIMIT = bot.Time(100)
 
-const CHEMICAL_SPILL_APPROACH_SPEED = 150
-const CHEMICAL_SPILL_APPROACH_POSITION = 200
+const CHEMICAL_SPILL_SAVE_APPROACH_SPEED = 150
+const CHEMICAL_SPILL_SAVE_APPROACH_DISTANCE_THRESHOLD = 2000
+const CHEMICAL_SPILL_SAVE_APPROACH_POSITION_LIMIT = 280
+const CHEMICAL_SPILL_SAVE_APPROACH_SMALL_POSITION_LIMIT = 30
+var chemicalSpillSaveApproachFoundCount = 0
+var CHEMICAL_SPILL_SAVE_APPROACH_FOUND_LIMIT = bot.Time(100)
 
 var chemicalSpillDropCount = 0
+var CHEMICAL_SPILL_DROP_RELEASE_LIMIT = bot.Time(500)
 var CHEMICAL_SPILL_DROP_OPEN_LIMIT = bot.Time(1000)
 var CHEMICAL_SPILL_DROP_RETREAT_LIMIT = bot.Time(1000)
 
@@ -128,7 +134,7 @@ var chemicalSpill = Behaviour{
 				chemicalSpillSearchFoundCount = 0
 			},
 			Update: func() {
-				if bot.UltrasonicSensor.Distance() <= CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD {
+				if bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_ENABLE_POSITION && bot.UltrasonicSensor.Distance() <= CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD {
 					chemicalSpillSearchFoundCount += 1
 				} else {
 					chemicalSpillSearchFoundCount /= 2
@@ -195,7 +201,7 @@ var chemicalSpill = Behaviour{
 					chemicalSpillCaptureApproachFoundCount /= 2
 				}
 
-				if chemicalSpillCaptureApproachFoundCount > CHEMICAL_SPILL_CAPTURE_APPROACH_FOUND_LIMIT || helper.IsDriveStopped() {
+				if chemicalSpillCaptureApproachFoundCount > CHEMICAL_SPILL_SAVE_APPROACH_FOUND_LIMIT || helper.IsDriveStopped() {
 					state_machine.Transition("chemical_spill.capture.grab")
 				}
 			},
@@ -262,10 +268,25 @@ var chemicalSpill = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "chemical_spill.save.approach",
 			Enter: func() {
-				bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_APPROACH_POSITION, CHEMICAL_SPILL_APPROACH_SPEED)
-				bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_APPROACH_POSITION, CHEMICAL_SPILL_APPROACH_SPEED)
+				bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_SAVE_APPROACH_POSITION_LIMIT, CHEMICAL_SPILL_SAVE_APPROACH_SPEED)
+				bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_SAVE_APPROACH_POSITION_LIMIT, CHEMICAL_SPILL_SAVE_APPROACH_SPEED)
+				chemicalSpillSaveApproachFoundCount = 0
 			},
 			Update: func() {
+				if bot.UltrasonicSensor.Distance() <= CHEMICAL_SPILL_SAVE_APPROACH_DISTANCE_THRESHOLD && chemicalSpillSaveApproachFoundCount >= 0 {
+					chemicalSpillSaveApproachFoundCount += 1
+				} else {
+					chemicalSpillSaveApproachFoundCount /= 2
+				}
+
+				// if chemicalSpillSaveApproachFoundCount > CHEMICAL_SPILL_SAVE_APPROACH_FOUND_LIMIT {
+				// 	chemicalSpillSaveApproachFoundCount = -1
+				// 	bot.DriveMotorLeft.Hold()
+				// 	bot.DriveMotorRight.Hold()
+				// 	// bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_SAVE_APPROACH_SMALL_POSITION_LIMIT, CHEMICAL_SPILL_SAVE_APPROACH_SPEED)
+				// 	// bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_SAVE_APPROACH_SMALL_POSITION_LIMIT, CHEMICAL_SPILL_SAVE_APPROACH_SPEED)
+				// }
+
 				if helper.IsDriveStopped() {
 					state_machine.Transition("chemical_spill.save.drop")
 				}
@@ -275,17 +296,20 @@ var chemicalSpill = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "chemical_spill.save.drop",
 			Enter: func() {
-				helper.ReleaseClaw()
 				chemicalSpillDropCount = 0
 			},
 			Update: func() {
 				chemicalSpillDropCount += 1
 
-				if chemicalSpillDropCount > CHEMICAL_SPILL_DROP_OPEN_LIMIT {
+				if chemicalSpillDropCount > CHEMICAL_SPILL_DROP_RELEASE_LIMIT {
+					helper.ReleaseClaw()
+				}
+
+				if chemicalSpillDropCount > CHEMICAL_SPILL_DROP_RELEASE_LIMIT + CHEMICAL_SPILL_DROP_OPEN_LIMIT {
 					helper.OpenClaw()
 				}
 
-				if chemicalSpillDropCount > CHEMICAL_SPILL_DROP_OPEN_LIMIT + CHEMICAL_SPILL_DROP_RETREAT_LIMIT {
+				if chemicalSpillDropCount > CHEMICAL_SPILL_DROP_RELEASE_LIMIT + CHEMICAL_SPILL_DROP_OPEN_LIMIT + CHEMICAL_SPILL_DROP_RETREAT_LIMIT {
 					state_machine.Transition("chemical_spill.exit")
 				}
 			},
@@ -321,20 +345,28 @@ var chemicalSpill = Behaviour{
 			},
 			Update: func() {
 				if helper.IsDriveStopped() {
-					state_machine.Transition("chemical_spill.exit.backup")
+					state_machine.Transition("follow_line.follow")
 				}
 			},
 		})
 
 		// state_machine.Add(state_machine.State{
-		// 	Name: "chemical_spill.exit.spin",
+		// 	Name: "chemical_spill.exit.backup",
 		// 	Enter: func() {
-		// 		bot.DriveMotorLeft.RunToRelativePositionAndHold(-CHEMICAL_SPILL_EXIT_SPIN_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
-		// 		bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_EXIT_SPIN_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+		// 		bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_ENTER_SPEED)
+		// 		bot.DriveMotorRight.Run(-CHEMICAL_SPILL_ENTER_SPEED)
 		// 	},
 		// 	Update: func() {
+		// 		if bot.ColorSensorLeft.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
+		// 			bot.DriveMotorLeft.Hold()
+		// 		}
+
+		// 		if bot.ColorSensorRight.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
+		// 			bot.DriveMotorRight.Hold()
+		// 		}
+
 		// 		if helper.IsDriveStopped() {
-		// 			state_machine.Transition("chemical_spill.exit.backup")
+		// 			state_machine.Transition("chemical_spill.exit.spin")
 		// 		}
 		// 	},
 		// })

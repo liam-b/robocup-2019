@@ -28,9 +28,9 @@ func start() {
 
 	logger.Debug("initialising io devices")
 	bot.Multiplexer = i2c.Multiplexer{}.New()
-	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
-	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
-	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
+	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
+	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
+	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
 	bot.GyroSensor = i2c.GyroSensor{}.New()
 	bot.UltrasonicSensor = i2c.UltrasonicSensor{}.New()
 
@@ -76,35 +76,4 @@ func exit() {
 	behaviour.Cleanup()
 	helper.Cleanup()
 	bot.Cleanup()
-
-	time.Sleep(time.Millisecond * 300)
-}
-
-func doSumCanStuff() {
-	helper.CloseClaw()
-	time.Sleep(time.Second)
-	helper.RaiseClaw()
-	time.Sleep(time.Second * 2)
-	helper.RunToPositionDrive(300, 300)
-	time.Sleep(time.Second * 2)
-	helper.ReleaseClaw()
-	time.Sleep(time.Second)
-	helper.OpenClaw()
-	time.Sleep(time.Second * 1)
-	helper.RunToPositionDrive(0, 300)
-	time.Sleep(time.Second * 1)
-	helper.LowerClaw()
-	time.Sleep(time.Second * 3)
-
-	helper.RaiseClaw()
-	time.Sleep(time.Second * 2)
-	helper.RunToPositionDrive(300, 300)
-	time.Sleep(time.Second * 2)
-	helper.CloseClaw()
-	time.Sleep(time.Second)
-	helper.RunToPositionDrive(0, 300)
-	time.Sleep(time.Second * 2)
-	helper.LowerClaw()
-	time.Sleep(time.Second * 2)
-	helper.OpenClaw()
 }

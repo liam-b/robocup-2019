@@ -6,7 +6,7 @@ import (
 	"github.com/liam-b/robocup-2019/state_machine"
 )
 
-const PAUSE_INTENSITY_THRESHOLD = 0.3
+const PAUSE_INTENSITY_THRESHOLD = 0
 var PAUSE_WAIT_LIMIT = bot.Time(100)
 var pauseWaitValue = 0
 

@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	"time"
+	// "time"
 )
 
 const (
@@ -48,11 +48,10 @@ func Init(_Start func(), _Exit func(), _Cycle func()) {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	go func() {
-		for _ = range stop {
-			fmt.Print("\n")
-			logger.Debug("caught interrupt")
-			Stop()
-		}
+		<-stop
+		fmt.Print("\n")
+		logger.Debug("caught interrupt")
+		Stop()
 	}()
 
 	Start()
@@ -60,12 +59,8 @@ func Init(_Start func(), _Exit func(), _Cycle func()) {
 }
 
 func Stop() {
-	CycleThread.Stop()
-	time.Sleep(time.Millisecond * 500)
-	Exit()
-	time.Sleep(time.Millisecond * 500)
 	CycleThread.Destroy()
-	os.Exit(0)
+	Exit()
 }
 
 func Setup() {
