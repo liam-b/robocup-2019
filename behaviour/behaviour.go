@@ -5,7 +5,7 @@ import "github.com/liam-b/robocup-2019/logger"
 var behaviours = []Behaviour{
 	followLine,
 	greenTurn,
-	waterTower,
+	water_tower,
 	chemicalSpill,
 	pause,
 }
