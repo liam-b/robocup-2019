@@ -83,9 +83,9 @@ var followLine = Behaviour{
 					followLineLostCount /= 2
 				}
 
-				if followLineLostCount > FOLLOW_LINE_LOST_LIMIT {
-					state_machine.Transition("follow_line.recapture")
-				}
+				// if followLineLostCount > FOLLOW_LINE_LOST_LIMIT {
+				// 	state_machine.Transition("follow_line.recapture")
+				// }
 			},
 		})
 

@@ -28,9 +28,9 @@ func start() {
 
 	logger.Debug("initialising io devices")
 	bot.Multiplexer = i2c.Multiplexer{}.New()
-	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
-	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
-	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
+	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
+	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
+	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
 	bot.GyroSensor = i2c.GyroSensor{}.New()
 	bot.UltrasonicSensor = i2c.UltrasonicSensor{}.New()
 
