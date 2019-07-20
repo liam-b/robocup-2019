@@ -41,7 +41,7 @@ var followLine = Behaviour{
 				// 	state_machine.Transition("pause.wait")
 				// }
 				
-				if (bot.UltrasonicSensor.Distance() <= 2900) {
+				if (bot.UltrasonicSensor.Distance() <= 3700) {
 					waterTowerCounter += 1
 				} else {
 					waterTowerCounter /= 2
