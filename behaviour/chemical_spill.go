@@ -18,7 +18,8 @@ const CHEMICAL_SPILL_ENTER_POSITION = 580
 
 const CHEMICAL_SPILL_SEARCH_SPEED = 70
 const CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 6200
-const CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 250
+const CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 120
+const CHEMICAL_SPILL_SEARCH_POSITION_LIMIT = 1500
 var chemicalSpillSearchFoundCount = 0
 var chemicalSpillSearchLostCount = 0
 var CHEMICAL_SPILL_SEARCH_FOUND_LIMIT = bot.Time(150)
@@ -28,8 +29,8 @@ var chemicalSpillSearchAlignRotation = 0
 var chemicalSpillSearchPosition = 0
 
 const CHEMICAL_SPILL_CAPTURE_SPEED = 150
-const CHEMICAL_SPILL_CAPTURE_POSITION_LIMIT = 290
-const CHEMICAL_SPILL_APPROACH_DISTANCE_THRESHOLD = 1800
+const CHEMICAL_SPILL_CAPTURE_POSITION_LIMIT = 300
+const CHEMICAL_SPILL_APPROACH_DISTANCE_THRESHOLD = 1700
 var chemicalSpillCaptureApproachFoundCount = 0
 var CHEMICAL_SPILL_CAPTURE_APPROACH_FOUND_LIMIT = bot.Time(100)
 
@@ -116,6 +117,8 @@ var chemicalSpill = Behaviour{
 			Enter: func() {
 				bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
 				bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+
+				helper.CloseClaw()
 			},
 			Update: func() {
 				if helper.IsDriveStopped() {
@@ -127,6 +130,7 @@ var chemicalSpill = Behaviour{
 		state_machine.Add(state_machine.State{
 			Name: "chemical_spill.capture.search",
 			Enter: func() {
+				helper.OpenClaw()
 				bot.GyroSensor.Reset()
 				bot.DriveMotorLeft.ResetPosition()
 				bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
@@ -139,6 +143,12 @@ var chemicalSpill = Behaviour{
 				} else {
 					chemicalSpillSearchFoundCount /= 2
 				}
+
+				// if bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_ENABLE_POSITION {
+				// 	logger.Debug("hi")
+				// 	bot.DriveMotorLeft.Coast()
+				// 	bot.DriveMotorRight.Coast()
+				// }
 
 				if chemicalSpillSearchFoundCount > CHEMICAL_SPILL_SEARCH_FOUND_LIMIT {
 					state_machine.Transition("chemical_spill.capture.overshoot")

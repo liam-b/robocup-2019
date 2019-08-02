@@ -7,35 +7,49 @@ import (
   "github.com/liam-b/robocup-2019/logger"
 )
 
-
-
-
 var water_tower = Behaviour{
   Setup: func() {
     state_machine.Add(state_machine.State{
       Name: "water_tower.verify",
+      Enter: func() {
+        bot.DriveMotorLeft.RunToRelativePositionAndHold(-400, 100)
+        bot.DriveMotorRight.RunToRelativePositionAndHold(-400, 100)
+      },
       Update: func() {
-        if (bot.UltrasonicSensor.Distance() <= 2800) {
-          // helper.CloseClaw()
-          state_machine.Transition("water_tower.backItUp")
+        if (bot.UltrasonicSensor.Distance() >= 6000 || helper.IsDriveStopped()) {
+          state_machine.Transition("water_tower.thing")
         } 
         logger.Trace(bot.UltrasonicSensor.Distance())
       },
     })
 
     state_machine.Add(state_machine.State{
-      Name: "water_tower.backItUp",
+      Name: "water_tower.thing",
       Enter: func() {
-        bot.DriveMotorLeft.RunToRelativePositionAndHold(-180, 300)
-        bot.DriveMotorRight.RunToRelativePositionAndHold(-180, 300)
+        bot.DriveMotorLeft.Hold()
+        bot.DriveMotorRight.Hold()
         helper.CloseClaw()
       },
       Update: func() {
-        if (helper.IsDriveStopped()) {
+        if (helper.IsClawClosed()) {
           state_machine.Transition("water_tower.adjust")
-        }
+        } 
       },
     })
+
+    // state_machine.Add(state_machine.State{
+    //   Name: "water_tower.backItUp",
+    //   Enter: func() {
+    //     bot.DriveMotorLeft.RunToRelativePositionAndHold(-180, 300)
+    //     bot.DriveMotorRight.RunToRelativePositionAndHold(-180, 300)
+    //     helper.CloseClaw()
+    //   },
+    //   Update: func() {
+    //     if (helper.IsDriveStopped()) {
+    //       state_machine.Transition("water_tower.adjust")
+    //     }
+    //   },
+    // })
 
     state_machine.Add(state_machine.State{
       Name: "water_tower.adjust",
@@ -68,7 +82,8 @@ var water_tower = Behaviour{
       Name: "water_tower.captureLine",
       Enter: func() {
         helper.OpenClaw()
-        bot.DriveMotorLeft.RunToRelativePositionAndHold(130, 150)
+        bot.DriveMotorLeft.RunToRelativePositionAndHold(280, 200)
+        bot.DriveMotorRight.RunToRelativePositionAndHold(-15, 200)
       },
       Update: func() {
         if (helper.IsDriveStopped()) {

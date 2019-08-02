@@ -7,6 +7,8 @@ if [ $? -eq 0 ]; then
   scp ./robocup-2019 $1:/home/robot/src/bin
   sleep 1
   ssh -t $1 "/home/robot/src/bin/robocup-2019"
+  sleep 1
+  ssh -t $1 "/home/robot/src/bin/stop.sh"
   rm ./robocup-2019
 else
   echo "failed to build"

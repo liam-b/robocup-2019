@@ -17,7 +17,7 @@ var followLineLostCount = 0
 var FOLLOW_LINE_LOST_LIMIT = bot.Time(1000)
 
 var waterTowerCounter = 0
-var WATER_TOWER_WAIT_LIMIT = bot.Time(200)
+var WATER_TOWER_WAIT_LIMIT = bot.Time(500)
 var WATER_TOWER_COUNT_LIMIT = 1
 var waterTowerCheekyCount = 0
 
@@ -41,7 +41,7 @@ var followLine = Behaviour{
 				// 	state_machine.Transition("pause.wait")
 				// }
 				
-				if (bot.UltrasonicSensor.Distance() <= 3700) {
+				if (bot.UltrasonicSensor.Distance() <= 4500) {
 					waterTowerCounter += 1
 				} else {
 					waterTowerCounter /= 2
