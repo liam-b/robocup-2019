@@ -16,8 +16,14 @@ var water_tower = Behaviour{
         bot.DriveMotorRight.RunToRelativePositionAndHold(-400, 100)
       },
       Update: func() {
+<<<<<<< HEAD
         if (bot.UltrasonicSensor.Distance() >= 6000 || helper.IsDriveStopped()) {
           state_machine.Transition("water_tower.thing")
+=======
+        if (bot.UltrasonicSensor.Distance() <= 3300) { //if you are using forward align change to 3500
+          // helper.CloseClaw()
+          state_machine.Transition("water_tower.backItUp")
+>>>>>>> d2f6cee2c70cf4ec1ac92f134a943cc937272642
         } 
         logger.Trace(bot.UltrasonicSensor.Distance())
       },
@@ -26,12 +32,34 @@ var water_tower = Behaviour{
     state_machine.Add(state_machine.State{
       Name: "water_tower.thing",
       Enter: func() {
+<<<<<<< HEAD
         bot.DriveMotorLeft.Hold()
         bot.DriveMotorRight.Hold()
         helper.CloseClaw()
       },
       Update: func() {
         if (helper.IsClawClosed()) {
+=======
+        bot.DriveMotorLeft.RunToRelativePositionAndHold(-180, 200)
+        bot.DriveMotorRight.RunToRelativePositionAndHold(-180, 200)
+        helper.CloseClaw()
+      },
+      Update: func() {
+        if (helper.IsDriveStopped()) {
+          // state_machine.Transition("water_tower.forwardAlign")
+          state_machine.Transition("water_tower.adjust") //water_tower.adjust in case you want to skip forward align
+        }
+      },
+    })
+
+    state_machine.Add(state_machine.State{
+      Name: "water_tower.forwardAlign",
+      Update: func() {
+        if (bot.UltrasonicSensor.Distance() > 3100) {
+          bot.DriveMotorRight.RunToRelativePositionAndHold(180, 50)
+          bot.DriveMotorLeft.RunToRelativePositionAndHold(180, 50)  
+        } else {
+>>>>>>> d2f6cee2c70cf4ec1ac92f134a943cc937272642
           state_machine.Transition("water_tower.adjust")
         } 
       },
@@ -54,8 +82,8 @@ var water_tower = Behaviour{
     state_machine.Add(state_machine.State{
       Name: "water_tower.adjust",
       Enter: func() {
-        bot.DriveMotorRight.RunToRelativePositionAndHold(-180, 260) // 200, 300 & -200, 300
-        bot.DriveMotorLeft.RunToRelativePositionAndHold(180, 260)        
+        bot.DriveMotorRight.RunToRelativePositionAndHold(-180, 160)
+        bot.DriveMotorLeft.RunToRelativePositionAndHold(180, 160)        
       },
       Update: func() {
         if (helper.IsDriveStopped()) {
@@ -82,8 +110,13 @@ var water_tower = Behaviour{
       Name: "water_tower.captureLine",
       Enter: func() {
         helper.OpenClaw()
+<<<<<<< HEAD
         bot.DriveMotorLeft.RunToRelativePositionAndHold(280, 200)
         bot.DriveMotorRight.RunToRelativePositionAndHold(-15, 200)
+=======
+        bot.DriveMotorLeft.RunToRelativePositionAndHold(280, 150) //130, 150
+        bot.DriveMotorRight.RunToRelativePositionAndHold(-15, 150)
+>>>>>>> d2f6cee2c70cf4ec1ac92f134a943cc937272642
       },
       Update: func() {
         if (helper.IsDriveStopped()) {
