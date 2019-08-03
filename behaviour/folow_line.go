@@ -41,17 +41,17 @@ var followLine = Behaviour{
 				// 	state_machine.Transition("pause.wait")
 				// }
 				
-				// if (bot.UltrasonicSensor.Distance() <= 4500) {
-				// 	waterTowerCounter += 1
-				// } else {
-				// 	waterTowerCounter /= 2
-				// }
+				if (bot.UltrasonicSensor.Distance() <= 4500) {
+					waterTowerCounter += 1
+				} else {
+					waterTowerCounter /= 2
+				}
 
-				// if (waterTowerCounter > WATER_TOWER_WAIT_LIMIT && waterTowerCheekyCount < WATER_TOWER_COUNT_LIMIT) {
-				// 	logger.Trace("move into water tower state")
-				// 	waterTowerCheekyCount += 1
-				// 	state_machine.Transition("water_tower.verify")
-				// }
+				if (waterTowerCounter > WATER_TOWER_WAIT_LIMIT && waterTowerCheekyCount < WATER_TOWER_COUNT_LIMIT) {
+					// logger.Trace("move into water tower state")
+					waterTowerCheekyCount += 1
+					state_machine.Transition("water_tower.verify")
+				}
 
 				if helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN {
 					followLineFoundGreenCount += 1

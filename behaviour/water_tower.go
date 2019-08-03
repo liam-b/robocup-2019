@@ -54,8 +54,8 @@ var water_tower = Behaviour{
     state_machine.Add(state_machine.State{
       Name: "water_tower.backItUp",
       Enter: func() {
-        bot.DriveMotorLeft.RunToRelativePositionAndHold(-60, 200)
-        bot.DriveMotorRight.RunToRelativePositionAndHold(-60, 200)
+        bot.DriveMotorLeft.RunToRelativePositionAndHold(-70, 200)
+        bot.DriveMotorRight.RunToRelativePositionAndHold(-70, 200)
         helper.CloseClaw()
       },
       Update: func() {
@@ -83,7 +83,7 @@ var water_tower = Behaviour{
       Update: func() {
         if (bot.ColorSensorMiddle.Intensity() >= 10) { // the problem is that it is starting on black, changed to middle sensor try again
           bot.DriveMotorLeft.Run(200)
-          bot.DriveMotorRight.Run(380)
+          bot.DriveMotorRight.Run(375)
         } else {
           bot.DriveMotorLeft.Brake()
           bot.DriveMotorRight.Brake()

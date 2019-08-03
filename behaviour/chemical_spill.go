@@ -1,6 +1,7 @@
 package behaviour
 
 import (
+	"github.com/liam-b/robocup-2019/logger"
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/helper"
 	"github.com/liam-b/robocup-2019/state_machine"
@@ -17,9 +18,11 @@ const CHEMICAL_SPILL_ENTER_SPEED = 200
 const CHEMICAL_SPILL_ENTER_POSITION = 580
 
 const CHEMICAL_SPILL_SEARCH_SPEED = 70
-const CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 6100
-const CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 280
-const CHEMICAL_SPILL_SEARCH_POSITION_LIMIT = 1500
+const CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 6050
+// const CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 280 // normally good
+const CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 320
+// const CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 120 // only for first diagonal
+const CHEMICAL_SPILL_SEARCH_POSITION_LIMIT = 850
 var chemicalSpillSearchFoundCount = 0
 var chemicalSpillSearchLostCount = 0
 var CHEMICAL_SPILL_SEARCH_FOUND_LIMIT = bot.Time(150)
@@ -144,6 +147,12 @@ var chemicalSpill = Behaviour{
 					chemicalSpillSearchFoundCount /= 2
 				}
 
+				// if bot.DriveMotorLeft.Position() < -710 {
+				// 	state_machine.Transition("chemical_spill.capture.approach")
+				// }
+
+				logger.Debug(bot.DriveMotorLeft.Position())
+
 				// if bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_ENABLE_POSITION {
 				// 	logger.Debug("hi")
 				// 	bot.DriveMotorLeft.Coast()
@@ -165,13 +174,17 @@ var chemicalSpill = Behaviour{
 				chemicalSpillSearchLostCount = 0
 			},
 			Update: func() {
+				// if bot.DriveMotorLeft.Position() < -710 {
+				// 	state_machine.Transition("chemical_spill.capture.approach")
+				// }
+
 				if bot.UltrasonicSensor.Distance() >= CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD {
 					chemicalSpillSearchLostCount += 1
 				} else {
 					chemicalSpillSearchLostCount /= 2
 				}
 
-				if chemicalSpillSearchLostCount > CHEMICAL_SPILL_SEARCH_FOUND_LIMIT {
+				if chemicalSpillSearchLostCount > CHEMICAL_SPILL_SEARCH_FOUND_LIMIT || bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_POSITION_LIMIT {
 					state_machine.Transition("chemical_spill.capture.align")
 				}
 			},
@@ -188,6 +201,11 @@ var chemicalSpill = Behaviour{
 				chemicalSpillSearchAlignRotation = (chemicalSpillSearchFoundRotation * 2 + chemicalSpillSearchLostRotation) / 3
 			},
 			Update: func() {
+				// if bot.DriveMotorLeft.Position() < -710 {
+				// 	state_machine.Transition("chemical_spill.capture.approach")
+				// 	chemicalSpillSearchPosition = bot.DriveMotorLeft.Position()
+				// }
+
 				if bot.GyroSensor.Rotation() < chemicalSpillSearchAlignRotation {
 					chemicalSpillSearchPosition = bot.DriveMotorLeft.Position()
 					state_machine.Transition("chemical_spill.capture.approach")
