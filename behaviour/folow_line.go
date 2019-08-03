@@ -4,7 +4,7 @@ import (
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/helper"
 	"github.com/liam-b/robocup-2019/state_machine"
-	"github.com/liam-b/robocup-2019/logger"
+	// "github.com/liam-b/robocup-2019/logger"
 )
 
 const FOLLOW_LINE_GREEN_VERIFY_MIDDLE_INTENSITY = 0.4
@@ -41,17 +41,17 @@ var followLine = Behaviour{
 				// 	state_machine.Transition("pause.wait")
 				// }
 				
-				if (bot.UltrasonicSensor.Distance() <= 4500) {
-					waterTowerCounter += 1
-				} else {
-					waterTowerCounter /= 2
-				}
+				// if (bot.UltrasonicSensor.Distance() <= 4500) {
+				// 	waterTowerCounter += 1
+				// } else {
+				// 	waterTowerCounter /= 2
+				// }
 
-				if (waterTowerCounter > WATER_TOWER_WAIT_LIMIT && waterTowerCheekyCount < WATER_TOWER_COUNT_LIMIT) {
-					logger.Trace("move into water tower state")
-					waterTowerCheekyCount += 1
-					state_machine.Transition("water_tower.verify")
-				}
+				// if (waterTowerCounter > WATER_TOWER_WAIT_LIMIT && waterTowerCheekyCount < WATER_TOWER_COUNT_LIMIT) {
+				// 	logger.Trace("move into water tower state")
+				// 	waterTowerCheekyCount += 1
+				// 	state_machine.Transition("water_tower.verify")
+				// }
 
 				if helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN {
 					followLineFoundGreenCount += 1

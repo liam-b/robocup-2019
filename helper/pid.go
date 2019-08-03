@@ -9,15 +9,15 @@ const (
 	// INTEGRAL     = 1.43
 	// DERIVATIVE  = 2950
 
-	PROPORTIONAL = 550
-	INTEGRAL     = 1.44
+	PROPORTIONAL = 550 //580
+	INTEGRAL     = 1.46 //1.43
 	DERIVATIVE   = 1950
 
-	BASE_SPEED       = 220
+	BASE_SPEED       = 210
 	HARD_TURN_VALUE  = 0.25
 	HARD_TURN_SPEED  = 400
 	HARD_TURN_OFFSET = 000
-	RESET_THRESHOLD  = 0.22
+	RESET_THRESHOLD  = 0.3 //0.22
 )
 
 var (
@@ -46,9 +46,9 @@ func PID() (int, int) {
 	// 	right = HARD_TURN_OFFSET - HARD_TURN_SPEED
 	// }
   //
-	// if MiddleError() > RESET_THRESHOLD {
-	// 	integral = 0
-	// }
+	if MiddleError() > RESET_THRESHOLD {
+		integral = 0
+	}
 
 	return left, right
 }
