@@ -43,6 +43,8 @@ func start() {
 	helper.Setup()
 	behaviour.Setup()
 
+	bot.ClawMotor.RunToAbsolutePositionAndBrake(-170, 300)
+
 	state_machine.Transition("follow_line.follow") 
 	time.Sleep(time.Second)
 }

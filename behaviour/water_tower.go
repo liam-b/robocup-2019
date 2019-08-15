@@ -24,33 +24,6 @@ var water_tower = Behaviour{
       },
     })
 
-    // state_machine.Add(state_machine.State{
-    //   Name: "water_tower.thing",
-    //   Enter: func() {
-    //     bot.DriveMotorLeft.RunToRelativePositionAndHold(-180, 200)
-    //     bot.DriveMotorRight.RunToRelativePositionAndHold(-180, 200)
-    //     helper.CloseClaw()
-    //   },
-    //   Update: func() {
-    //     if (helper.IsDriveStopped()) {
-    //       // state_machine.Transition("water_tower.forwardAlign")
-    //       state_machine.Transition("water_tower.adjust") //water_tower.adjust in case you want to skip forward align
-    //     }
-    //   },
-    // })
-
-    // state_machine.Add(state_machine.State{
-    //   Name: "water_tower.forwardAlign",
-    //   Update: func() {
-    //     if (bot.UltrasonicSensor.Distance() > 3100) {
-    //       bot.DriveMotorRight.RunToRelativePositionAndHold(180, 50)
-    //       bot.DriveMotorLeft.RunToRelativePositionAndHold(180, 50)  
-    //     } else {
-    //       state_machine.Transition("water_tower.adjust")
-    //     } 
-    //   },
-    // })
-
     state_machine.Add(state_machine.State{
       Name: "water_tower.backItUp",
       Enter: func() {
@@ -60,14 +33,35 @@ var water_tower = Behaviour{
       },
       Update: func() {
         if (helper.IsDriveStopped()) {
+          // state_machine.Transition("water_tower.adjust")
+          state_machine.Transition("water_tower.forwardAlign")
+        }
+      },
+    })
+
+    state_machine.Add(state_machine.State{
+      Name: "water_tower.forwardAlign",
+      Enter: func() {
+        bot.DriveMotorRight.RunToRelativePositionAndHold(180, 50)
+        bot.DriveMotorLeft.RunToRelativePositionAndHold(180, 50)  
+      },
+      Update: func() {
+        if (bot.UltrasonicSensor.Distance() < 3100) {
           state_machine.Transition("water_tower.adjust")
         }
+
+        if (helper.IsDriveStopped()) {
+          helper.OpenClaw()
+          state_machine.Transition("follow_line.follow")
+        } 
       },
     })
 
     state_machine.Add(state_machine.State{
       Name: "water_tower.adjust",
       Enter: func() {
+        bot.DriveMotorLeft.Brake()
+        bot.DriveMotorRight.Brake()
         bot.DriveMotorRight.RunToRelativePositionAndHold(-180, 160)
         bot.DriveMotorLeft.RunToRelativePositionAndHold(180, 160)        
       },
@@ -83,7 +77,7 @@ var water_tower = Behaviour{
       Update: func() {
         if (bot.ColorSensorMiddle.Intensity() >= 10) { // the problem is that it is starting on black, changed to middle sensor try again
           bot.DriveMotorLeft.Run(200)
-          bot.DriveMotorRight.Run(375)
+          bot.DriveMotorRight.Run(435)
         } else {
           bot.DriveMotorLeft.Brake()
           bot.DriveMotorRight.Brake()

@@ -18,7 +18,7 @@ var FOLLOW_LINE_LOST_LIMIT = bot.Time(1000)
 
 var waterTowerCounter = 0
 var WATER_TOWER_WAIT_LIMIT = bot.Time(500)
-var WATER_TOWER_COUNT_LIMIT = 1
+var WATER_TOWER_COUNT_LIMIT = 5
 var waterTowerCheekyCount = 0
 
 var followLine = Behaviour{ 
@@ -41,17 +41,17 @@ var followLine = Behaviour{
 				// 	state_machine.Transition("pause.wait")
 				// }
 				
-				if (bot.UltrasonicSensor.Distance() <= 4500) {
+				if (bot.UltrasonicSensor.Distance() <= 4000) {
 					waterTowerCounter += 1
 				} else {
 					waterTowerCounter /= 2
 				}
 
-				if (waterTowerCounter > WATER_TOWER_WAIT_LIMIT && waterTowerCheekyCount < WATER_TOWER_COUNT_LIMIT) {
-					// logger.Trace("move into water tower state")
-					waterTowerCheekyCount += 1
-					state_machine.Transition("water_tower.verify")
-				}
+				// if (waterTowerCounter > WATER_TOWER_WAIT_LIMIT && waterTowerCheekyCount < WATER_TOWER_COUNT_LIMIT) {
+				// 	// logger.Trace("move into water tower state")
+				// 	waterTowerCheekyCount += 1
+				// 	state_machine.Transition("water_tower.verify")
+				// }
 
 				if helper.LeftColor() == helper.COLOR_GREEN || helper.RightColor() == helper.COLOR_GREEN {
 					followLineFoundGreenCount += 1
