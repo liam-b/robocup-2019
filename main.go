@@ -51,6 +51,8 @@ func loop() {
 	bot.Update()
 	// state_machine.Update()
 
+	// logger.Trace(helper.LeftGreen())
+
 	// logger.Debug(bot.DriveMotorLeft.Port, bot.DriveMotorLeft.Speed())
 
 	// logger.Debug(helper.LeftColor(), helper.MiddleColor(), helper.RightColor())

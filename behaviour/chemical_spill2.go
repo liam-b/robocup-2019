@@ -3,6 +3,7 @@ package behaviour
 import (
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/helper"
+	"github.com/liam-b/robocup-2019/logger"
 )
 
 var (
@@ -12,18 +13,18 @@ var (
 	CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY = 30
 
 	chemicalSpillVerifyAlignAttemptCount = 0
-	CHEMICAL_SPILL_VERIFY_ALIGN_ATTEMPTS = 4
+	CHEMICAL_SPILL_VERIFY_ALIGN_ATTEMPTS = 1 // 4
 
 	CHEMICAL_SPILL_ENTER_SPEED = 250
 	CHEMICAL_SPILL_ENTER_POSITION = 580
 
 	CHEMICAL_SPILL_SEARCH_SPEED = 70
-	CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 450
+	CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 200
 	CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 3400
-	CHEMICAL_SPILL_SEARCH_FIRST_DIAGONAL_POSITION = 300
-	CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION = 4000
+	CHEMICAL_SPILL_SEARCH_FIRST_DIAGONAL_POSITION = 150
+	CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION = 810
 
-	CHEMICAL_SPILL_SEARCH_CHECK_POSITION = 200
+	CHEMICAL_SPILL_SEARCH_CHECK_POSITION = 230
 	CHEMICAL_SPILL_SEARCH_CHECK_DISTANCE_THRESHOLD = 2800
 
 	CHEMICAL_SPILL_RESCUE_SPEED = 100
@@ -32,6 +33,7 @@ var (
 )
 
 func ChemicalSpillVerify() {
+	logger.Debug("detected chemical spill")
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
@@ -41,14 +43,15 @@ func ChemicalSpillVerify() {
 }
 
 func ChemicalSpillBackwardAlign() {
+	logger.Debug("backwards silver align")
 	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.Run(-CHEMICAL_SPILL_VERIFY_SPEED)
 	for !helper.IsDriveStopped() {
-		if bot.ColorSensorLeft.Intensity() < CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
+		if bot.ColorSensorLeft.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
 			bot.DriveMotorLeft.Hold()
 		}
 
-		if bot.ColorSensorRight.Intensity() < CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
+		if bot.ColorSensorRight.Intensity() > CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY {
 			bot.DriveMotorRight.Hold()
 		}
 
@@ -59,14 +62,15 @@ func ChemicalSpillBackwardAlign() {
 }
 
 func ChemicalSpillForwardAlign() {
+	logger.Debug("forwards silver align")
 	bot.DriveMotorLeft.Run(CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.Run(CHEMICAL_SPILL_VERIFY_SPEED)
 	for !helper.IsDriveStopped() {
-		if bot.ColorSensorLeft.Intensity() > CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY {
+		if bot.ColorSensorLeft.Intensity() < CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY {
 			bot.DriveMotorLeft.Hold()
 		}
 
-		if bot.ColorSensorRight.Intensity() > CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY {
+		if bot.ColorSensorRight.Intensity() < CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY {
 			bot.DriveMotorRight.Hold()
 		}
 
@@ -82,20 +86,36 @@ func ChemicalSpillForwardAlign() {
 }
 
 func ChemicalSpillSearch() {
+	logger.Debug("entering spill")
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
+	logger.Debug("rotating to first diagonal")
 	bot.DriveMotorLeft.ResetPosition()
-	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_SEARCH_FIRST_DIAGONAL_POSITION, CHEMICAL_SPILL_SEARCH_SPEED)
-	bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_SEARCH_FIRST_DIAGONAL_POSITION, CHEMICAL_SPILL_SEARCH_SPEED)
-	for !helper.IsDriveStopped() { bot.CycleDelay() }
+	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
+	bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
+	for !helper.IsDriveStopped() {
+		if bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_FIRST_DIAGONAL_POSITION {
+			bot.DriveMotorLeft.Hold()
+			bot.DriveMotorRight.Hold()
+		}
 
+		bot.CycleDelay()
+	}
+
+	logger.Debug("checking first diagonal")
 	ChemicalSpillCheckCurrentPosition()
 
-	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION, CHEMICAL_SPILL_SEARCH_SPEED)
-	bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION, CHEMICAL_SPILL_SEARCH_SPEED)
+	logger.Debug("searching for can until last diagonal")
+	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
+	bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
 	for !helper.IsDriveStopped() {
+		if bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION {
+			bot.DriveMotorLeft.Hold()
+			bot.DriveMotorRight.Hold()
+		}
+
 		if bot.DriveMotorLeft.Position() >= CHEMICAL_SPILL_SEARCH_ENABLE_POSITION {
 			if bot.UltrasonicSensor.Distance() <= CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD {
 				foundCan := ChemicalSpillCheckCurrentPosition()
