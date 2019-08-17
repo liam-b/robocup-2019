@@ -40,10 +40,11 @@ func (thread *Thread) Run() {
 	thread.running = true
 	thread.LastCycleTime = time.Now().UnixNano()
 
+	// FIXME: this is a busy waiting loop, maybe needs a delay?
 	for thread.alive {
 		if thread.running {
 			now := time.Now().UnixNano()
-			thread.delta += float64(now-thread.LastCycleTime) / (NANO_SECOND / thread.Target)
+			thread.delta += float64(now - thread.LastCycleTime) / (NANO_SECOND / thread.Target)
 			thread.Frequency = 1.0 / thread.delta * thread.Target
 			thread.LastCycleTime = now
 
@@ -62,8 +63,8 @@ func (thread *Thread) doCycle() {
 }
 
 func (thread Thread) checkFrameDrop() {
-	dropped := 100 - int((1.0/thread.delta)*100.0)
-	if dropped > int(CYCLE_DROP_THRESHOLD*100.0) {
+	dropped := 100 - int((1.0 / thread.delta) * 100.0)
+	if dropped > int(CYCLE_DROP_THRESHOLD * 100.0) {
 		logger.Warn("thread dropping " + strconv.Itoa(dropped) + "% of cycles")
 	}
 }

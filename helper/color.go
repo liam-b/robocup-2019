@@ -49,6 +49,18 @@ func colorValue(red int, green int, blue int) int {
 	return COLOR_WHITE
 }
 
+func LeftGreen() int {
+	return greenDifference(bot.ColorSensorLeft.RGB())
+}
+
+func RightGreen() int {
+	return greenDifference(bot.ColorSensorRight.RGB())
+}
+
+func greenDifference(red int, green int, blue int) int {
+	return green - ((red + blue) / 2)
+}
+
 func LineError() float64 {
 	err := LeftError() - RightError()
 

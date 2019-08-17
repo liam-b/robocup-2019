@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
-	// "time"
+	"time"
 )
 
 const (
@@ -16,11 +16,12 @@ const (
 )
 
 var (
-	looping     bool = true
+	looping bool = true
+	nextCycleFrame bool = false
 	CycleThread Thread
+	IOThread Thread
 
 	Start func()
-	Loop  func()
 	Exit  func()
 
 	Cycle func()
@@ -30,7 +31,7 @@ var (
 	ColorSensorMiddle i2c.ColorSensor
 	ColorSensorRight  i2c.ColorSensor
 	ColorMultiplexer  i2c.Multiplexer
-	GyroSensor        i2c.GyroSensor
+	// GyroSensor        i2c.GyroSensor
 	UltrasonicSensor  i2c.UltrasonicSensor
 
 	DriveMotorLeft    lego.Motor
@@ -43,7 +44,7 @@ func Init(_Start func(), _Exit func(), _Cycle func()) {
 	Start = _Start
 	Exit = _Exit
 	Cycle = _Cycle
-	CycleThread = Thread{Target: CYCLE_FREQUENCY, Cycle: Cycle}.New()
+	CycleThread = Thread{Target: CYCLE_FREQUENCY, Cycle: cycleWrapper}.New()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
@@ -70,7 +71,7 @@ func Setup() {
 	ColorSensorLeft.Setup()
 	ColorSensorMiddle.Setup()
 	ColorSensorRight.Setup()
-	GyroSensor.Setup()
+	// GyroSensor.Setup()
 	UltrasonicSensor.Setup()
 
 	DriveMotorLeft.Setup()
@@ -83,7 +84,7 @@ func Update() {
 	ColorSensorLeft.Update()
 	ColorSensorMiddle.Update()
 	ColorSensorRight.Update()
-	GyroSensor.Update()
+	// GyroSensor.Update()
 	UltrasonicSensor.Update()
 
 	DriveMotorLeft.Update()
@@ -99,7 +100,7 @@ func Cleanup() {
 	ColorSensorLeft.Cleanup()
 	ColorSensorMiddle.Cleanup()
 	ColorSensorRight.Cleanup()
-	GyroSensor.Cleanup()
+	// GyroSensor.Cleanup()
 	UltrasonicSensor.Cleanup()
 
 	DriveMotorLeft.Cleanup()
@@ -110,4 +111,15 @@ func Cleanup() {
 
 func Time(milliseconds int) int {
 	return int(CYCLE_FREQUENCY * (float64(milliseconds) / 1000.0))
+}
+
+func CycleDelay() {
+	for !nextCycleFrame { time.Sleep(time.Millisecond) }
+	nextCycleFrame = false
+	// time.Sleep(time.Duration(1.0 / float64(CYCLE_FREQUENCY) * 1000) * time.Millisecond)
+}
+
+func cycleWrapper() {
+	Cycle()
+	nextCycleFrame = true
 }

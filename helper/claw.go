@@ -50,6 +50,14 @@ func IsClawClosed() bool {
 	return bot.ClawMotor.IsStopped()
 }
 
+func IsClawOpen() bool {
+	return bot.ClawMotor.IsStopped()
+}
+
 func IsClawRaised() bool {
+	return bot.ClawElevatorMotor.IsStopped()
+}
+
+func IsClawLowered() bool {
 	return bot.ClawElevatorMotor.IsStopped()
 }

@@ -11,7 +11,6 @@ import (
 
 	"os"
 	"runtime"
-	"time"
 )
 
 var file *os.File
@@ -31,7 +30,7 @@ func start() {
 	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
 	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
 	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
-	bot.GyroSensor = i2c.GyroSensor{}.New()
+	// bot.GyroSensor = i2c.GyroSensor{}.New()
 	bot.UltrasonicSensor = i2c.UltrasonicSensor{}.New()
 
 	bot.DriveMotorLeft = lego.Motor{Port: lego.PORT_MA}.New()
@@ -43,19 +42,16 @@ func start() {
 	helper.Setup()
 	behaviour.Setup()
 
-	bot.ClawMotor.RunToAbsolutePositionAndBrake(-170, 300)
+	// bot.ClawMotor.RunToAbsolutePositionAndBrake(-170, 300)
 
-	state_machine.Transition("follow_line.follow") 
-	time.Sleep(time.Second)
+	go behaviour.FollowLine()
 }
 
 func loop() {
 	bot.Update()
-	state_machine.Update()
+	// state_machine.Update()
 
 	// logger.Debug(bot.DriveMotorLeft.Port, bot.DriveMotorLeft.Speed())
-
-	logger.Debug(bot.UltrasonicSensor.Distance())
 
 	// logger.Debug(helper.LeftColor(), helper.MiddleColor(), helper.RightColor())
 	

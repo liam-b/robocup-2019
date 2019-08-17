@@ -3,16 +3,15 @@ package behaviour
 import "github.com/liam-b/robocup-2019/logger"
 
 var behaviours = []Behaviour{
-	followLine,
-	greenTurn,
-	water_tower,
-	chemicalSpill,
-	pause,
 }
 
 type Behaviour struct {
 	Setup   func()
 	Cleanup func()
+}
+
+func Tester() {
+	logger.Trace("running setup for behaviours")
 }
 
 func Setup() {
