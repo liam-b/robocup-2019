@@ -65,7 +65,7 @@ func (thread *Thread) doCycle() {
 func (thread Thread) checkFrameDrop() {
 	dropped := 100 - int((1.0 / thread.delta) * 100.0)
 	if dropped > int(CYCLE_DROP_THRESHOLD * 100.0) {
-		logger.Warn("thread dropping " + strconv.Itoa(dropped) + "% of cycles")
+		logger.Print("thread dropping " + strconv.Itoa(dropped) + "% of cycles")
 	}
 }
 

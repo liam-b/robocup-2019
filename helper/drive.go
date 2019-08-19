@@ -4,18 +4,6 @@ import (
 	"github.com/liam-b/robocup-2019/bot"
 )
 
-var drive = Helper{
-	Setup: func() {
-		bot.DriveMotorLeft.Coast()
-		bot.DriveMotorRight.Coast()
-	},
-
-	Cleanup: func() {
-		bot.DriveMotorLeft.Coast()
-		bot.DriveMotorRight.Coast()
-	},
-}
-
 func RunDrive(speed int) {
 	bot.DriveMotorLeft.Run(speed)
 	bot.DriveMotorRight.Run(speed)

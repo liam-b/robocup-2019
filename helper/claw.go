@@ -14,18 +14,6 @@ const (
 	CLAW_FUDGE = 5
 )
 
-var claw = Helper{
-	Setup: func() {
-		bot.ClawMotor.ResetPosition()
-		bot.ClawElevatorMotor.ResetPosition()
-	},
-
-	Cleanup: func() {
-		OpenClaw()
-		LowerClaw()
-	},
-}
-
 func OpenClaw() {
 	bot.ClawMotor.RunToAbsolutePositionAndCoast(CLAW_FUDGE, CLAW_SPEED)
 }

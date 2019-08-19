@@ -48,7 +48,7 @@ package behaviour
 // 				}
 
 // 				// if (waterTowerCounter > WATER_TOWER_WAIT_LIMIT && waterTowerCheekyCount < WATER_TOWER_COUNT_LIMIT) {
-// 				// 	// logger.Trace("move into water tower state")
+// 				// 	// logger.Print("move into water tower state")
 // 				// 	waterTowerCheekyCount += 1
 // 				// 	state_machine.Transition("water_tower.verify")
 // 				// }

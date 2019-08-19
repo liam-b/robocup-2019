@@ -19,11 +19,9 @@ var (
 	looping bool = true
 	nextCycleFrame bool = false
 	CycleThread Thread
-	IOThread Thread
 
 	Start func()
 	Exit  func()
-
 	Cycle func()
 
 	Multiplexer       i2c.Multiplexer
@@ -31,7 +29,6 @@ var (
 	ColorSensorMiddle i2c.ColorSensor
 	ColorSensorRight  i2c.ColorSensor
 	ColorMultiplexer  i2c.Multiplexer
-	// GyroSensor        i2c.GyroSensor
 	UltrasonicSensor  i2c.UltrasonicSensor
 
 	DriveMotorLeft    lego.Motor
@@ -51,7 +48,7 @@ func Init(_Start func(), _Exit func(), _Cycle func()) {
 	go func() {
 		<-stop
 		fmt.Print("\n")
-		logger.Debug("caught interrupt")
+		logger.Print("caught interrupt")
 		Stop()
 	}()
 
@@ -65,13 +62,12 @@ func Stop() {
 }
 
 func Setup() {
-	logger.Trace("setting up io devices")
+	logger.Print("setting up io devices")
 
 	Multiplexer.Setup()
 	ColorSensorLeft.Setup()
 	ColorSensorMiddle.Setup()
 	ColorSensorRight.Setup()
-	// GyroSensor.Setup()
 	UltrasonicSensor.Setup()
 
 	DriveMotorLeft.Setup()
@@ -84,7 +80,6 @@ func Update() {
 	ColorSensorLeft.Update()
 	ColorSensorMiddle.Update()
 	ColorSensorRight.Update()
-	// GyroSensor.Update()
 	UltrasonicSensor.Update()
 
 	DriveMotorLeft.Update()
@@ -94,13 +89,12 @@ func Update() {
 }
 
 func Cleanup() {
-	logger.Trace("cleaning up io devices")
+	logger.Print("cleaning up io devices")
 
 	Multiplexer.Cleanup()
 	ColorSensorLeft.Cleanup()
 	ColorSensorMiddle.Cleanup()
 	ColorSensorRight.Cleanup()
-	// GyroSensor.Cleanup()
 	UltrasonicSensor.Cleanup()
 
 	DriveMotorLeft.Cleanup()

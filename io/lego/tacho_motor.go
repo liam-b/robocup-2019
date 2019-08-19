@@ -111,5 +111,5 @@ func (device *TachoMotor) getCacheAttributes() {
 
 
 func (device TachoMotor) handleError(text string) {
-	logger.Error("lego tacho motor: " + text + " (" + string(device.Port) + ")")
+	logger.Print("lego tacho motor: " + text + " (" + string(device.Port) + ")")
 }

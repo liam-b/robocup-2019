@@ -32,24 +32,24 @@ func (sensor UltrasonicSensor) New() UltrasonicSensor {
 func (sensor UltrasonicSensor) Setup() {
 	err := sensor.device.WriteByte(ULTRASONIC_SENSOR_COMMAND_REGISTER, ULTRASONIC_SENSOR_RANGING_CENTIMETERS)
 	if err != nil {
-		logger.Error("ultrasonic sensor: failed to setup sensor")
+		logger.Print("ultrasonic sensor: failed to setup sensor")
 	}
 }
 
 func (sensor *UltrasonicSensor) Update() {
 	response, err := sensor.device.ReadByte(ULTRASONIC_SENSOR_SOFTWARE_REVISION_REGISTER)
 	if err != nil {
-		logger.Error("ultrasonic sensor: failed to communicate with sensor")
+		logger.Print("ultrasonic sensor: failed to communicate with sensor")
 	} else {
 		if response != 0xff {
 			data, err := sensor.device.ReadWord(ULTRASONIC_SENSOR_DISTANCE_REGISTER)
 			if err != nil {
-				logger.Error("ultrasonic sensor: failed to read distance value")
+				logger.Print("ultrasonic sensor: failed to read distance value")
 			} else {
 				sensor.cachedDistance = int(data)
 				err := sensor.device.WriteByte(ULTRASONIC_SENSOR_COMMAND_REGISTER, ULTRASONIC_SENSOR_RANGING_CENTIMETERS)
 				if err != nil {
-					logger.Error("ultrasonic sensor: failed to send ranging command")
+					logger.Print("ultrasonic sensor: failed to send ranging command")
 				}
 			}
 		}

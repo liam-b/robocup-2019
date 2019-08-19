@@ -32,14 +32,14 @@ func (sensor CompassSensor) New() CompassSensor {
 func (sensor CompassSensor) Setup() {
 	err := sensor.device.WriteByte(COMPASS_SENSOR_POWER_REGISTER, COMPASS_SENSOR_POWER_ON)
 	if err != nil {
-		logger.Error("compass sensor: failed to setup sensor")
+		logger.Print("compass sensor: failed to setup sensor")
 		return
 	}
 
 	time.Sleep(time.Millisecond * 100)
 	err = sensor.device.WriteByte(COMPASS_SENSOR_ENABLE_REGISTER, COMPASS_SENSOR_ENABLE_ACTIVATE)
 	if err != nil {
-		logger.Error("compass sensor: failed to setup sensor")
+		logger.Print("compass sensor: failed to setup sensor")
 		return
 	}
 }
@@ -49,7 +49,7 @@ func (sensor CompassSensor) Update() {}
 func (sensor CompassSensor) Cleanup() {
 	err := sensor.device.WriteByte(COMPASS_SENSOR_POWER_REGISTER, COMPASS_SENSOR_POWER_OFF)
 	if err != nil {
-		logger.Error("compass sensor: failed to cleanup sensor")
+		logger.Print("compass sensor: failed to cleanup sensor")
 	}
 
 	sensor.device.Destroy()
@@ -58,7 +58,7 @@ func (sensor CompassSensor) Cleanup() {
 func (sensor CompassSensor) Rotation() int {
 	valueLow, err := sensor.device.ReadByte(COMPASS_SENSOR_ROTATION_REGISTER)
 	if err != nil {
-		logger.Error("compass sensor: failed to read rotation")
+		logger.Print("compass sensor: failed to read rotation")
 		return 0
 	}
 

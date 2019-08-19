@@ -31,7 +31,7 @@ func (i2c *Multiplexer) SetChannel(index uint) {
 	channel := uint(1 << index)
 	err := i2c.device.SendBytes([]uint8{uint8(channel)})
 	if err != nil {
-		logger.Error("multiplexer: failed to set channel")
+		logger.Print("multiplexer: failed to set channel")
 	}
 }
 

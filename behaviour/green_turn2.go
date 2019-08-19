@@ -20,7 +20,7 @@ var (
 )
 
 func GreenTurnLeft() {
-	logger.Debug("left green turn")
+	logger.Print("left green turn")
 
 	bot.DriveMotorLeft.Run(GREEN_TURN_JUNCTION_SPEED)
 	bot.DriveMotorRight.Run(GREEN_TURN_JUNCTION_SPEED)
@@ -49,7 +49,7 @@ func GreenTurnLeft() {
 }
 
 func GreenTurnRight() {
-	logger.Debug("right green turn")
+	logger.Print("right green turn")
 
 	bot.DriveMotorLeft.Run(GREEN_TURN_JUNCTION_SPEED)
 	bot.DriveMotorRight.Run(GREEN_TURN_JUNCTION_SPEED)
@@ -79,7 +79,7 @@ func GreenTurnRight() {
 func GreenTurnCooldown() {
 	helper.ResetPID()
 
-	logger.Debug("green turn cool down")
+	logger.Print("green turn cool down")
 
 	for i := 0; i < GREEN_TURN_COOLDOWN; i++ {
 		left, right := helper.PID()

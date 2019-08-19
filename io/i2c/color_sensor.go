@@ -42,13 +42,13 @@ func (sensor ColorSensor) New() ColorSensor {
 func (sensor ColorSensor) Setup() {
 	err := sensor.device.WriteByte(COLOR_SENSOR_ENABLE_REGISTER, 0x03)
 	if err != nil {
-		logger.Error("color sensor: failed to setup sensor")
+		logger.Print("color sensor: failed to setup sensor")
 		return
 	}
 
 	err = sensor.device.WriteByte(COLOR_SENSOR_TIMING_REGISTER, 0xf3)
 	if err != nil {
-		logger.Error("color sensor: failed to setup sensor")
+		logger.Print("color sensor: failed to setup sensor")
 	}
 }
 
@@ -62,7 +62,7 @@ func (sensor *ColorSensor) Update() {
 func (sensor ColorSensor) Cleanup() {
 	err := sensor.device.WriteByte(COLOR_SENSOR_ENABLE_REGISTER, 0x00)
 	if err != nil {
-		logger.Error("color sensor: failed to cleanup sensor")
+		logger.Print("color sensor: failed to cleanup sensor")
 	}
 	sensor.device.Destroy()
 }
@@ -82,7 +82,7 @@ func (sensor ColorSensor) RGB() (int, int, int) {
 func (sensor ColorSensor) getClearValue(register uint8) int {
 	data, err := sensor.device.ReadWord(register)
 	if err != nil {
-		logger.Error("color sensor: failed to read clear value")
+		logger.Print("color sensor: failed to read clear value")
 		return 0
 	}
 
@@ -94,7 +94,7 @@ func (sensor ColorSensor) getClearValue(register uint8) int {
 func (sensor ColorSensor) getColorValue(register uint8) int {
 	data, err := sensor.device.ReadWord(register)
 	if err != nil {
-		logger.Error("color sensor: failed to read color value")
+		logger.Print("color sensor: failed to read color value")
 		return 0
 	}
 

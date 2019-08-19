@@ -48,13 +48,13 @@ func (sensor *GyroSensor) Destroy() {
 func (sensor *GyroSensor) getValue() int {
 	// valueLow, err := sensor.device.ReadByte(GYRO_SENSOR_ROTATION_REGISTER)
 	// if err != nil {
-	// 	logger.Error("gyro sensor: failed to read rotation")
+	// 	logger.Print("gyro sensor: failed to read rotation")
 	// 	return 0
 	// }
 
 	valueHigh, err := sensor.device.ReadByte(GYRO_SENSOR_ROTATION_REGISTER - 1)
 	if err != nil {
-		logger.Error("gyro sensor: failed to read rotation")
+		logger.Print("gyro sensor: failed to read rotation")
 		return 0
 	}
 

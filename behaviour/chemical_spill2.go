@@ -13,19 +13,20 @@ var (
 	CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY = 30
 
 	chemicalSpillVerifyAlignAttemptCount = 0
-	CHEMICAL_SPILL_VERIFY_ALIGN_ATTEMPTS = 1 // 4
+	CHEMICAL_SPILL_VERIFY_ALIGN_ATTEMPTS = 4
 
 	CHEMICAL_SPILL_ENTER_SPEED = 250
 	CHEMICAL_SPILL_ENTER_POSITION = 580
 
 	CHEMICAL_SPILL_SEARCH_SPEED = 70
 	CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 200
-	CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 3400
+	CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD = 4600
+	CHEMICAL_SPILL_SEARCH_FOUND_COUNT_THRESHOLD = bot.Time(100)
 	CHEMICAL_SPILL_SEARCH_FIRST_DIAGONAL_POSITION = 150
 	CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION = 810
 
 	CHEMICAL_SPILL_SEARCH_CHECK_POSITION = 230
-	CHEMICAL_SPILL_SEARCH_CHECK_DISTANCE_THRESHOLD = 2800
+	CHEMICAL_SPILL_SEARCH_CHECK_DISTANCE_THRESHOLD = 4000
 
 	CHEMICAL_SPILL_RESCUE_SPEED = 100
 	CHEMICAL_SPILL_RESCUE_BLOCK_POSITION = 200
@@ -33,7 +34,7 @@ var (
 )
 
 func ChemicalSpillVerify() {
-	logger.Debug("detected chemical spill")
+	logger.Print("detected chemical spill")
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
@@ -43,7 +44,7 @@ func ChemicalSpillVerify() {
 }
 
 func ChemicalSpillBackwardAlign() {
-	logger.Debug("backwards silver align")
+	logger.Print("backwards silver align")
 	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.Run(-CHEMICAL_SPILL_VERIFY_SPEED)
 	for !helper.IsDriveStopped() {
@@ -62,7 +63,7 @@ func ChemicalSpillBackwardAlign() {
 }
 
 func ChemicalSpillForwardAlign() {
-	logger.Debug("forwards silver align")
+	logger.Print("forwards silver align")
 	bot.DriveMotorLeft.Run(CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.Run(CHEMICAL_SPILL_VERIFY_SPEED)
 	for !helper.IsDriveStopped() {
@@ -79,19 +80,36 @@ func ChemicalSpillForwardAlign() {
 
 	chemicalSpillVerifyAlignAttemptCount++
 	if chemicalSpillVerifyAlignAttemptCount >= CHEMICAL_SPILL_VERIFY_ALIGN_ATTEMPTS {
-		ChemicalSpillSearch()
+		ChemicalSpillEnter()
 	} else {
 		ChemicalSpillBackwardAlign()
 	}
 }
 
-func ChemicalSpillSearch() {
-	logger.Debug("entering spill")
+func ChemicalSpillEnter() {
+	logger.Print("entering spill")
+
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
-	logger.Debug("rotating to first diagonal")
+	logger.Print("test grabbing")
+	helper.CloseClaw()
+	for !helper.IsClawClosed() { bot.CycleDelay() }
+
+	if bot.UltrasonicSensor.Distance() < CHEMICAL_SPILL_SEARCH_CHECK_DISTANCE_THRESHOLD {
+		ChemicalSpillPlaceCanOnBlock()
+	}
+
+	helper.CloseClaw()
+	for !helper.IsClawClosed() { bot.CycleDelay() }
+
+	logger.Print("no can in test grab, now searching")
+	ChemicalSpillSearch()
+}
+
+func ChemicalSpillSearch() {
+	logger.Print("rotating to first diagonal")
 	bot.DriveMotorLeft.ResetPosition()
 	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
 	bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
@@ -104,12 +122,16 @@ func ChemicalSpillSearch() {
 		bot.CycleDelay()
 	}
 
-	logger.Debug("checking first diagonal")
-	ChemicalSpillCheckCurrentPosition()
+	logger.Print("checking first diagonal")
+	if ChemicalSpillCheckCurrentPosition() {
+		return
+	}
 
-	logger.Debug("searching for can until last diagonal")
+	logger.Print("searching for can until last diagonal")
 	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
 	bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
+
+	foundCount := 0
 	for !helper.IsDriveStopped() {
 		if bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION {
 			bot.DriveMotorLeft.Hold()
@@ -118,8 +140,16 @@ func ChemicalSpillSearch() {
 
 		if bot.DriveMotorLeft.Position() >= CHEMICAL_SPILL_SEARCH_ENABLE_POSITION {
 			if bot.UltrasonicSensor.Distance() <= CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD {
-				foundCan := ChemicalSpillCheckCurrentPosition()
-				if foundCan { return }
+				foundCount++
+			} else {
+				foundCount /= 2
+			}
+
+			if foundCount > CHEMICAL_SPILL_SEARCH_FOUND_COUNT_THRESHOLD {
+				logger.Print("found can")
+				if ChemicalSpillAlignWithCan() {
+					return
+				}
 			}
 		}
 
@@ -129,7 +159,47 @@ func ChemicalSpillSearch() {
 	ChemicalSpillCheckCurrentPosition()
 }
 
+func ChemicalSpillAlignWithCan() bool {
+	logger.Print("aligning with can")
+	foundPosition := bot.DriveMotorLeft.Position()
+	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
+	bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
+
+	lostCount := 0
+	for !helper.IsDriveStopped() {
+		if bot.UltrasonicSensor.Distance() >= CHEMICAL_SPILL_SEARCH_DISTANCE_THRESHOLD {
+			lostCount++
+		} else {
+			lostCount /= 2
+		}
+
+		if lostCount > CHEMICAL_SPILL_SEARCH_FOUND_COUNT_THRESHOLD {
+			logger.Print("lost can")
+			bot.DriveMotorLeft.Hold()
+			bot.DriveMotorRight.Hold()
+		}
+
+		bot.CycleDelay()
+	}
+
+	logger.Print("turning back")
+	alignPosition := int(float64(bot.DriveMotorRight.Position() - foundPosition) * (2.0 / 3.0))
+	bot.DriveMotorLeft.Run(CHEMICAL_SPILL_SEARCH_SPEED)
+	bot.DriveMotorRight.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
+	for !helper.IsDriveStopped() {
+		if bot.DriveMotorLeft.Position() > alignPosition {
+			bot.DriveMotorLeft.Hold()
+			bot.DriveMotorRight.Hold()
+		}
+
+		bot.CycleDelay()
+	}
+
+	return ChemicalSpillCheckCurrentPosition()
+}
+
 func ChemicalSpillCheckCurrentPosition() bool {
+	logger.Print("checking current position for can")
 	bot.DriveMotorRight.ResetPosition()
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_SEARCH_CHECK_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_SEARCH_CHECK_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
@@ -145,6 +215,7 @@ func ChemicalSpillCheckCurrentPosition() bool {
 		bot.CycleDelay()
 	}
 
+	logger.Print("test grab")
 	helper.CloseClaw()
 	for !helper.IsClawClosed() { bot.CycleDelay() }
 
@@ -163,21 +234,30 @@ func ChemicalSpillCheckCurrentPosition() bool {
 	bot.DriveMotorRight.RunToRelativePositionAndHold(-bot.DriveMotorRight.Position(), CHEMICAL_SPILL_VERIFY_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
+	logger.Print("no can at current position")
 	return false
 }
 
 func ChemicalSpillRescueCan() {
+	logger.Print("rescuing can")
 	helper.CloseClaw()
 	for !helper.IsClawClosed() { bot.CycleDelay() }
 
+	logger.Print("returning to middle")
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(-bot.DriveMotorRight.Position(), CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(-bot.DriveMotorRight.Position(), CHEMICAL_SPILL_VERIFY_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
+	logger.Print("rotating back to block")
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(-bot.DriveMotorLeft.Position(), CHEMICAL_SPILL_SEARCH_SPEED * 2)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(bot.DriveMotorLeft.Position(), CHEMICAL_SPILL_SEARCH_SPEED * 2)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
+	ChemicalSpillPlaceCanOnBlock()
+}
+
+func ChemicalSpillPlaceCanOnBlock() {
+	logger.Print("raising claw")
 	helper.RaiseClaw()
 	for !helper.IsClawRaised() { bot.CycleDelay() }
 
@@ -185,12 +265,14 @@ func ChemicalSpillRescueCan() {
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_RESCUE_BLOCK_POSITION, CHEMICAL_SPILL_RESCUE_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
+	logger.Print("dropping can")
 	helper.ReleaseClaw()
 	for !helper.IsClawOpen() { bot.CycleDelay() }
 
 	helper.OpenClaw()
 	for !helper.IsClawOpen() { bot.CycleDelay() }
 
+	logger.Print("escaping")
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(-(CHEMICAL_SPILL_ENTER_POSITION + CHEMICAL_SPILL_RESCUE_BLOCK_POSITION + CHEMICAL_SPILL_RESCUE_EXIT_OFFSET), CHEMICAL_SPILL_RESCUE_SPEED)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(-(CHEMICAL_SPILL_ENTER_POSITION + CHEMICAL_SPILL_RESCUE_BLOCK_POSITION + CHEMICAL_SPILL_RESCUE_EXIT_OFFSET), CHEMICAL_SPILL_RESCUE_SPEED)
 	for !helper.IsDriveStopped() {
