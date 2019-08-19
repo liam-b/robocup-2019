@@ -1,141 +1,91 @@
 package behaviour
 
-// import (
-// 	"github.com/liam-b/robocup-2019/bot"
-// 	"github.com/liam-b/robocup-2019/helper"
-// 	"github.com/liam-b/robocup-2019/state_machine"
-// )
+import (
+	"github.com/liam-b/robocup-2019/bot"
+	"github.com/liam-b/robocup-2019/helper"
+	"github.com/liam-b/robocup-2019/logger"
+)
 
-// const GREEN_TURN_JUNCTION_INTENSNITY = 0.3
-// const GREEN_TURN_JUNCTION_SPEED = 200
-// const GREEN_TURN_INNER_SPEED = -150
-// const GREEN_TURN_OUTER_SPEED = 100
-// const GREEN_TURN_EXIT_INTENSNITY = 0.6
+var (
+	GREEN_TURN_JUNCTION_SPEED = 200
+	GREEN_TURN_JUNCTION_INTENSNITY = 0.25
+	GREEN_TURN_DOUBLE_GREEN_INTENSITY = 11
+	GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT = bot.Time(200)
 
-// var greenTurnEndWait = 0
-// var GREEN_TURN_END_WAIT_LIMIT = bot.Time(400)
-// const GREEN_TURN_MIDDLE_JUNCTION_INTENSNITY = 0.3
+	GREEN_TURN_INNER_SPEED = -150
+	GREEN_TURN_OUTER_SPEED = 100
+	GREEN_TURN_MIN_TURN_DEGREES = 30
 
-// var greenTurnEndCooldown = 0
-// var GREEN_TURN_END_COOLDOWN_LIMIT = bot.Time(1000)
+	GREEN_TURN_COOLDOWN = bot.Time(800)
+)
 
-// var greenTurnFoundChemicalSpillCount = 0
-// var GREEN_TURN_FOUND_CHEMICAL_SPILL_THRESHOLD = bot.Time(50)
+func GreenTurnLeft() {
+	logger.Print("left green turn")
 
-// var greenTurn = Behaviour{
-// 	Setup: func() {
-// 		state_machine.Add(state_machine.State{
-// 			Name: "green_turn.verify",
-// 			Enter: func() {
-// 				greenTurnFoundChemicalSpillCount = 0
-// 			},
-// 			Update: func() {
-// 				if helper.LeftColor() == helper.COLOR_GREEN {
-// 					state_machine.Transition("green_turn.left")
-// 				}
+	bot.DriveMotorLeft.Run(GREEN_TURN_JUNCTION_SPEED)
+	bot.DriveMotorRight.Run(GREEN_TURN_JUNCTION_SPEED)
 
-// 				if helper.RightColor() == helper.COLOR_GREEN {
-// 					state_machine.Transition("green_turn.right")
-// 				}
+	doubleGreenCount := 0
+	for helper.LeftError() > GREEN_TURN_JUNCTION_INTENSNITY {
+		if helper.LeftGreen() > GREEN_TURN_DOUBLE_GREEN_INTENSITY && helper.RightGreen() > GREEN_TURN_DOUBLE_GREEN_INTENSITY {
+			doubleGreenCount += 1
+		}
 
-// 				if helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN {
-// 					greenTurnFoundChemicalSpillCount += 1
-// 				} else {
-// 					greenTurnFoundChemicalSpillCount /= 2
-// 				}
-// 			},
-// 		})
+		if doubleGreenCount > GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT {
+			ChemicalSpillVerify()
+			return
+		}
 
-// 		state_machine.Add(state_machine.State{
-// 			Name: "green_turn.left",
-// 			Update: func() {
-// 				bot.DriveMotorLeft.Run(GREEN_TURN_JUNCTION_SPEED)
-// 				bot.DriveMotorRight.Run(GREEN_TURN_JUNCTION_SPEED)
+		bot.CycleDelay() 
+	}
 
-// 				if helper.LeftError() < GREEN_TURN_JUNCTION_INTENSNITY {
-// 					state_machine.Transition("green_turn.left_turn")
-// 				}
+	bot.DriveMotorLeft.ResetPosition()
+	bot.DriveMotorLeft.Run(GREEN_TURN_INNER_SPEED)
+	bot.DriveMotorRight.Run(GREEN_TURN_OUTER_SPEED)
+	for helper.MiddleError() > GREEN_TURN_JUNCTION_INTENSNITY || bot.DriveMotorLeft.Position() > -GREEN_TURN_MIN_TURN_DEGREES { 
+		bot.CycleDelay() }
 
-// 				if helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN {
-// 					greenTurnFoundChemicalSpillCount += 1
-// 				} else {
-// 					greenTurnFoundChemicalSpillCount /= 2
-// 				}
-// 				if greenTurnFoundChemicalSpillCount > GREEN_TURN_FOUND_CHEMICAL_SPILL_THRESHOLD {
-// 					state_machine.Transition("chemical_spill.verify")
-// 				}
-// 			},
-// 		})
+	GreenTurnCooldown()
+}
 
-// 		state_machine.Add(state_machine.State{
-// 			Name: "green_turn.left_turn",
-// 			Enter: func() {
-// 				greenTurnEndWait = 0
-// 			},
-// 			Update: func() {
-// 				bot.DriveMotorLeft.Run(GREEN_TURN_INNER_SPEED)
-// 				bot.DriveMotorRight.Run(GREEN_TURN_OUTER_SPEED)
+func GreenTurnRight() {
+	logger.Print("right green turn")
 
-// 				greenTurnEndWait += 1
-// 				if greenTurnEndWait > GREEN_TURN_END_WAIT_LIMIT && helper.MiddleError() < GREEN_TURN_MIDDLE_JUNCTION_INTENSNITY {
-// 					state_machine.Transition("green_turn.cooldown")
-// 				}
-// 			},
-// 		})
+	bot.DriveMotorLeft.Run(GREEN_TURN_JUNCTION_SPEED)
+	bot.DriveMotorRight.Run(GREEN_TURN_JUNCTION_SPEED)
 
-// 		state_machine.Add(state_machine.State{
-// 			Name: "green_turn.right",
-// 			Update: func() {
-// 				bot.DriveMotorLeft.Run(GREEN_TURN_JUNCTION_SPEED)
-// 				bot.DriveMotorRight.Run(GREEN_TURN_JUNCTION_SPEED)
+	doubleGreenCount := 0
+	for helper.RightError() > GREEN_TURN_JUNCTION_INTENSNITY {
+		if helper.LeftGreen() > GREEN_TURN_DOUBLE_GREEN_INTENSITY && helper.RightGreen() > GREEN_TURN_DOUBLE_GREEN_INTENSITY {
+			doubleGreenCount += 1
+		}
 
-// 				if helper.RightError() < GREEN_TURN_JUNCTION_INTENSNITY {
-// 					state_machine.Transition("green_turn.right_turn")
-// 				}
+		if doubleGreenCount > bot.Time(GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT) {
+			ChemicalSpillVerify()
+			return
+		}
 
-// 				if helper.LeftColor() == helper.COLOR_GREEN && helper.RightColor() == helper.COLOR_GREEN {
-// 					greenTurnFoundChemicalSpillCount += 1
-// 				} else {
-// 					greenTurnFoundChemicalSpillCount /= 2
-// 				}
-// 				if greenTurnFoundChemicalSpillCount > GREEN_TURN_FOUND_CHEMICAL_SPILL_THRESHOLD {
-// 					state_machine.Transition("chemical_spill.verify")
-// 				}
-// 			},
-// 		})
-		
-// 		state_machine.Add(state_machine.State{
-// 			Name: "green_turn.right_turn",
-// 			Enter: func() {
-// 				greenTurnEndWait = 0
-// 			},
-// 			Update: func() {
-// 				bot.DriveMotorLeft.Run(GREEN_TURN_OUTER_SPEED)
-// 				bot.DriveMotorRight.Run(GREEN_TURN_INNER_SPEED)
+		bot.CycleDelay() 
+	}
 
-// 				greenTurnEndWait += 1
-// 				if greenTurnEndWait > GREEN_TURN_END_WAIT_LIMIT && helper.MiddleError() < GREEN_TURN_MIDDLE_JUNCTION_INTENSNITY {
-// 					state_machine.Transition("green_turn.cooldown")
-// 				}
-// 			},
-// 		})
+	bot.DriveMotorRight.ResetPosition()
+	bot.DriveMotorLeft.Run(GREEN_TURN_OUTER_SPEED)
+	bot.DriveMotorRight.Run(GREEN_TURN_INNER_SPEED)
+	for helper.MiddleError() > GREEN_TURN_JUNCTION_INTENSNITY || bot.DriveMotorRight.Position() > -GREEN_TURN_MIN_TURN_DEGREES { bot.CycleDelay() }
 
-// 		state_machine.Add(state_machine.State{
-// 			Name: "green_turn.cooldown",
-// 			Enter: func() {
-// 				helper.ResetPID()
-// 				greenTurnEndCooldown = 0
-// 			},
-// 			Update: func() {
-// 				left, right := helper.PID()
-// 				bot.DriveMotorLeft.Run(left)
-// 				bot.DriveMotorRight.Run(right)
+	GreenTurnCooldown()
+}
 
-// 				greenTurnEndCooldown += 1
-// 				if greenTurnEndCooldown > GREEN_TURN_END_COOLDOWN_LIMIT {
-// 					state_machine.Transition("follow_line.follow")
-// 				}
-// 			},
-// 		})
-// 	},
-// }
+func GreenTurnCooldown() {
+	helper.ResetPID()
+
+	logger.Print("green turn cool down")
+
+	for i := 0; i < GREEN_TURN_COOLDOWN; i++ {
+		left, right := helper.PID()
+		bot.DriveMotorLeft.Run(left)
+		bot.DriveMotorRight.Run(right)
+
+		bot.CycleDelay()
+	}
+}

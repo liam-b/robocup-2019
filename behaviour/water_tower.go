@@ -1,103 +1,85 @@
 package behaviour
 
-// import (
-// 	"github.com/liam-b/robocup-2019/bot"
-// 	"github.com/liam-b/robocup-2019/helper"
-// 	"github.com/liam-b/robocup-2019/state_machine"
-//   "github.com/liam-b/robocup-2019/logger"
-// )
+import (
+	"github.com/liam-b/robocup-2019/bot"
+	"github.com/liam-b/robocup-2019/helper"
+)
 
-// var water_tower = Behaviour{
-//   Setup: func() {
-//     state_machine.Add(state_machine.State{
-//       Name: "water_tower.verify",
-//       Enter: func() {
-//         bot.DriveMotorLeft.RunToRelativePositionAndHold(-100, 100)
-//         bot.DriveMotorRight.RunToRelativePositionAndHold(-100, 100)
-//       },
-//       Update: func() {
-//         if (bot.UltrasonicSensor.Distance() <= 3350) { // if you are using forward align change to 3500
-//           // helper.CloseClaw()
-//           state_machine.Transition("water_tower.backItUp")
-//         } 
-//         logger.Trace(bot.UltrasonicSensor.Distance())
-//       },
-//     })
+var (
+	WATER_TOWER_SPEED = 100
+	WATER_TOWER_VERIFY_DISTANCE = 3350
+	WATER_TOWER_VERIFY_POSITION_LIMIT = 500
 
-//     state_machine.Add(state_machine.State{
-//       Name: "water_tower.backItUp",
-//       Enter: func() {
-//         bot.DriveMotorLeft.RunToRelativePositionAndHold(-70, 200)
-//         bot.DriveMotorRight.RunToRelativePositionAndHold(-70, 200)
-//         helper.CloseClaw()
-//       },
-//       Update: func() {
-//         if (helper.IsDriveStopped()) {
-//           // state_machine.Transition("water_tower.adjust")
-//           state_machine.Transition("water_tower.forwardAlign")
-//         }
-//       },
-//     })
+	WATER_TOWER_INNER_SPEED = 200
+	WATER_TOWER_OUTER_SPEED = 435
+	WATER_TOWER_SKIRT_TURN_DEGREES = 200
+	WATER_TOWER_SKIRT_LINE_INTENSITY = 20
+	WATER_TOWER_SKIRT_DEGREES = 1000
 
-//     state_machine.Add(state_machine.State{
-//       Name: "water_tower.forwardAlign",
-//       Enter: func() {
-//         bot.DriveMotorRight.RunToRelativePositionAndHold(180, 50)
-//         bot.DriveMotorLeft.RunToRelativePositionAndHold(180, 50)  
-//       },
-//       Update: func() {
-//         if (bot.UltrasonicSensor.Distance() < 3100) {
-//           state_machine.Transition("water_tower.adjust")
-//         }
+	WATER_TOWER_RECAPTURE_INNER_POSITION = 280
+	WATER_TOWER_RECAPTURE_OUTER_POSITION = -15
 
-//         if (helper.IsDriveStopped()) {
-//           helper.OpenClaw()
-//           state_machine.Transition("follow_line.follow")
-//         } 
-//       },
-//     })
+	WATER_TOWER_RECAPTURE_LINE_INTENSITY = 15
+	WATER_TOWER_RECAPTURE_90_TURN_POSITION = 400
+)
 
-//     state_machine.Add(state_machine.State{
-//       Name: "water_tower.adjust",
-//       Enter: func() {
-//         bot.DriveMotorLeft.Brake()
-//         bot.DriveMotorRight.Brake()
-//         bot.DriveMotorRight.RunToRelativePositionAndHold(-180, 160)
-//         bot.DriveMotorLeft.RunToRelativePositionAndHold(180, 160)        
-//       },
-//       Update: func() {
-//         if (helper.IsDriveStopped()) {
-//           state_machine.Transition("water_tower.skrrrt")
-//         }
-//       },
-//     })
+func WaterTowerVerify() {
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(-WATER_TOWER_VERIFY_POSITION_LIMIT, WATER_TOWER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-WATER_TOWER_VERIFY_POSITION_LIMIT, WATER_TOWER_SPEED)
+	for bot.UltrasonicSensor.Distance() < WATER_TOWER_VERIFY_DISTANCE {
+		if helper.IsDriveStopped() {
+			return
+		}
 
-//     state_machine.Add(state_machine.State{
-//       Name: "water_tower.skrrrt",
-//       Update: func() {
-//         if (bot.ColorSensorMiddle.Intensity() >= 10) { // the problem is that it is starting on black, changed to middle sensor try again
-//           bot.DriveMotorLeft.Run(200)
-//           bot.DriveMotorRight.Run(435)
-//         } else {
-//           bot.DriveMotorLeft.Brake()
-//           bot.DriveMotorRight.Brake()
-//           state_machine.Transition("water_tower.captureLine")
-//         }
-//       },
-//     })
+		bot.CycleDelay()
+	}
 
-//     state_machine.Add(state_machine.State{
-//       Name: "water_tower.captureLine",
-//       Enter: func() {
-//         helper.OpenClaw()
-//         bot.DriveMotorLeft.RunToRelativePositionAndHold(280, 150) //130, 150
-//         bot.DriveMotorRight.RunToRelativePositionAndHold(-15, 150)
-//       },
-//       Update: func() {
-//         if (helper.IsDriveStopped()) {
-//           state_machine.Transition("follow_line.follow")
-//         }
-//       },
-//     })
-//   },
-// }
+	WaterTowerSkirt()
+}
+
+func WaterTowerSkirt() {
+	bot.DriveMotorLeft.ResetPosition()
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(WATER_TOWER_SKIRT_TURN_DEGREES, WATER_TOWER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-WATER_TOWER_SKIRT_TURN_DEGREES, WATER_TOWER_SPEED)
+	for helper.IsDriveStopped() { bot.CycleDelay() }
+
+	bot.DriveMotorLeft.ResetPosition()
+	bot.DriveMotorLeft.Run(WATER_TOWER_INNER_SPEED)
+	bot.DriveMotorRight.Run(WATER_TOWER_OUTER_SPEED)
+	for bot.ColorSensorMiddle.Intensity() > WATER_TOWER_SKIRT_LINE_INTENSITY { 
+		if bot.DriveMotorLeft.Position() > WATER_TOWER_SKIRT_DEGREES {
+			WaterTowerOvershootRecapture()
+			return
+		}
+
+		bot.CycleDelay()
+	}
+
+	WaterTowerRecapture()
+}
+
+func WaterTowerRecapture() {
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(WATER_TOWER_RECAPTURE_INNER_POSITION, WATER_TOWER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(WATER_TOWER_RECAPTURE_OUTER_POSITION, WATER_TOWER_SPEED)
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+}
+
+func WaterTowerOvershootRecapture() {
+	bot.DriveMotorLeft.Run(-WATER_TOWER_SPEED)
+	bot.DriveMotorRight.Run(-WATER_TOWER_SPEED)
+	for !helper.IsDriveStopped() {
+		if bot.ColorSensorLeft.Intensity() < WATER_TOWER_RECAPTURE_LINE_INTENSITY {
+			bot.DriveMotorLeft.Hold()
+		}
+
+		if bot.ColorSensorRight.Intensity() < WATER_TOWER_RECAPTURE_LINE_INTENSITY {
+			bot.DriveMotorRight.Hold()
+		}
+
+		bot.CycleDelay()
+	}
+
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(WATER_TOWER_RECAPTURE_90_TURN_POSITION, WATER_TOWER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-WATER_TOWER_RECAPTURE_90_TURN_POSITION, WATER_TOWER_SPEED)
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+}
