@@ -15,14 +15,14 @@ import (
 var file *os.File
 
 func main() {
-	bot.Init(start, exit, loop)
+	bot.Init(Start, Exit, Loop)
 }
 
-func start() {
+func Start() {
 	logger.Print("started")
 	logger.Print("max goroutines:", runtime.GOMAXPROCS(0))
 
-	logger.Print("initialising io devices")
+	logger.Print("initialising io")
 	bot.Multiplexer = i2c.Multiplexer{}.New()
 	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
 	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
@@ -40,15 +40,22 @@ func start() {
 
 	// bot.ClawMotor.RunToAbsolutePositionAndBrake(-170, 300)
 
+	// // warm start
+	// fmt.Print("Enter text: ")
+	// var input string
+	// fmt.Scanln(&input)
+	// fmt.Print(input)
+
+	logger.Print("starting behaviour")
 	go behaviour.FollowLine()
 }
 
-func loop() {
+func Loop() {
 	bot.Update()
 	logger.Print(bot.UltrasonicSensor.Distance())
 }
 
-func exit() {
+func Exit() {
 	logger.Print("exiting")
 
 	helper.OpenClaw()

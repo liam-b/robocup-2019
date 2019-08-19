@@ -62,8 +62,6 @@ func Stop() {
 }
 
 func Setup() {
-	logger.Print("setting up io devices")
-
 	Multiplexer.Setup()
 	ColorSensorLeft.Setup()
 	ColorSensorMiddle.Setup()
@@ -89,8 +87,6 @@ func Update() {
 }
 
 func Cleanup() {
-	logger.Print("cleaning up io devices")
-
 	Multiplexer.Cleanup()
 	ColorSensorLeft.Cleanup()
 	ColorSensorMiddle.Cleanup()

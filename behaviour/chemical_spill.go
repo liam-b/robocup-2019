@@ -25,8 +25,11 @@ var (
 	CHEMICAL_SPILL_SEARCH_FIRST_DIAGONAL_POSITION = 150
 	CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION = 810
 
-	CHEMICAL_SPILL_SEARCH_CHECK_POSITION = 230
-	CHEMICAL_SPILL_SEARCH_CHECK_DISTANCE_THRESHOLD = 4000
+	CHEMICAL_SPILL_CHECK_SPEED = 150
+	CHEMICAL_SPILL_CHECK_POSITION = 230
+	CHEMICAL_SPILL_CHECK_DISTANCE_THRESHOLD = 4000
+	CHEMICAL_SPILL_CHECK_TIME_LIMIT = bot.Time(200)
+	CHEMICAL_SPILL_CHECK_FOUND_COUNT_THRESHOLD = bot.Time(50)
 
 	CHEMICAL_SPILL_RESCUE_SPEED = 100
 	CHEMICAL_SPILL_RESCUE_BLOCK_POSITION = 200
@@ -93,18 +96,12 @@ func ChemicalSpillEnter() {
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
-	logger.Print("test grabbing")
-	helper.CloseClaw()
-	for !helper.IsClawClosed() { bot.CycleDelay() }
-
-	if bot.UltrasonicSensor.Distance() < CHEMICAL_SPILL_SEARCH_CHECK_DISTANCE_THRESHOLD {
-		ChemicalSpillPlaceCanOnBlock()
+	if ChemicalSpillCanInGrab() {
+		ChemicalSpillRescueCan()
+		return
 	}
 
-	helper.CloseClaw()
-	for !helper.IsClawClosed() { bot.CycleDelay() }
-
-	logger.Print("no can in test grab, now searching")
+	logger.Print("searching for can")
 	ChemicalSpillSearch()
 }
 
@@ -156,7 +153,7 @@ func ChemicalSpillSearch() {
 		bot.CycleDelay()
 	}
 
-	ChemicalSpillCheckCurrentPosition()
+	ChemicalSpillCheckCurrentPosition() // should return to block and try again after this
 }
 
 func ChemicalSpillAlignWithCan() bool {
@@ -201,40 +198,46 @@ func ChemicalSpillAlignWithCan() bool {
 func ChemicalSpillCheckCurrentPosition() bool {
 	logger.Print("checking current position for can")
 	bot.DriveMotorRight.ResetPosition()
-	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_SEARCH_CHECK_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
-	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_SEARCH_CHECK_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
-	for !helper.IsDriveStopped() {
-		if bot.UltrasonicSensor.Distance() < CHEMICAL_SPILL_SEARCH_CHECK_DISTANCE_THRESHOLD {
-			bot.DriveMotorLeft.Hold()
-			bot.DriveMotorRight.Hold()
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_CHECK_POSITION, CHEMICAL_SPILL_CHECK_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_CHECK_POSITION, CHEMICAL_SPILL_CHECK_SPEED)
+	for helper.IsDriveStopped() { bot.CycleDelay() }
 
-			ChemicalSpillRescueCan()
-			return true
-		}
-
-		bot.CycleDelay()
-	}
-
-	logger.Print("test grab")
-	helper.CloseClaw()
-	for !helper.IsClawClosed() { bot.CycleDelay() }
-
-	if bot.UltrasonicSensor.Distance() < CHEMICAL_SPILL_SEARCH_CHECK_DISTANCE_THRESHOLD {
-		bot.DriveMotorLeft.Hold()
-		bot.DriveMotorRight.Hold()
-
+	if ChemicalSpillCanInGrab() {
 		ChemicalSpillRescueCan()
 		return true
 	}
 
+	logger.Print("returning to middle")
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(-bot.DriveMotorRight.Position(), CHEMICAL_SPILL_CHECK_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-bot.DriveMotorRight.Position(), CHEMICAL_SPILL_CHECK_SPEED)
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+
+	return false
+}
+
+func ChemicalSpillCanInGrab() bool {
+	logger.Print("test grab")
+	helper.CloseClaw()
+	for !helper.IsClawClosed() { bot.CycleDelay() }
+
+	foundCount := 0
+	for i := 0; i < CHEMICAL_SPILL_CHECK_TIME_LIMIT; i++ {
+		if bot.UltrasonicSensor.Distance() < CHEMICAL_SPILL_CHECK_DISTANCE_THRESHOLD {
+			foundCount++
+			if foundCount > CHEMICAL_SPILL_CHECK_FOUND_COUNT_THRESHOLD {
+				logger.Print("found can in grab")
+				ChemicalSpillRescueCan()
+				return true
+			}
+		} else {
+			foundCount /= 2
+		}
+	}
+
+	logger.Print("no can in grab")
 	helper.OpenClaw()
 	for !helper.IsClawOpen() { bot.CycleDelay() }
 
-	bot.DriveMotorLeft.RunToRelativePositionAndHold(-bot.DriveMotorRight.Position(), CHEMICAL_SPILL_VERIFY_SPEED)
-	bot.DriveMotorRight.RunToRelativePositionAndHold(-bot.DriveMotorRight.Position(), CHEMICAL_SPILL_VERIFY_SPEED)
-	for !helper.IsDriveStopped() { bot.CycleDelay() }
-
-	logger.Print("no can at current position")
 	return false
 }
 

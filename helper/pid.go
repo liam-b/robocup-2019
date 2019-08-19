@@ -1,9 +1,5 @@
 package helper
 
-import (
-	// "fmt"
-)
-
 const (
   // PROPORTIONAL = 2000
 	// INTEGRAL     = 1.43

@@ -3,12 +3,18 @@ package behaviour
 import (
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/helper"
-	// "github.com/liam-b/robocup-2019/logger"
+	"github.com/liam-b/robocup-2019/logger"
 )
 
 var (
 	FOLLOW_LINE_GREEN_TURN_THRESHOLD = 12
 	FOLLOW_LINE_GREEN_TURN_TIME_LIMIT = bot.Time(50)
+
+	FOLLOW_LINE_RECOVER_LOST_THRESHOLD = 35
+	FOLLOW_LINE_RECOVER_FOUND_THRESHOLD = 15
+	FOLLOW_LINE_RECOVER_LOST_TIME_LIMIT = bot.Time(300)
+	FOLLOW_LINE_RECOVER_REVERSE_SPEED = 150
+	FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT = 180
 )
 
 func FollowLine() {
@@ -16,6 +22,7 @@ func FollowLine() {
 
 	leftGreenCount := 0
 	rightGreenCount := 0
+	lineLostCount := 0
 	for {
 		left, right := helper.PID()
 		bot.DriveMotorLeft.Run(left)
@@ -41,7 +48,63 @@ func FollowLine() {
 			rightGreenCount /= 2
 		}
 
+		if bot.ColorSensorLeft.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD && bot.ColorSensorRight.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD {
+			lineLostCount++
+			if lineLostCount > FOLLOW_LINE_RECOVER_LOST_TIME_LIMIT {
+				FollowLineRecoverLine()
+				lineLostCount = 0
+			}
+		} else {
+			lineLostCount /= 2
+		}
+
 		bot.CycleDelay()
-		// time.Sleep(time.Millisecond * 20)
 	}
+}
+
+func FollowLineRecoverLine() {
+	logger.Print("lost line during line following, now reversing")
+
+	bot.DriveMotorLeft.ResetPosition()
+	bot.DriveMotorLeft.Run(-FOLLOW_LINE_RECOVER_REVERSE_SPEED)
+	bot.DriveMotorRight.Run(-FOLLOW_LINE_RECOVER_REVERSE_SPEED)
+
+	leftFoundPosition := 0
+	rightFoundPosition := 0
+	for leftFoundPosition != 0 && rightFoundPosition != 0 && bot.DriveMotorLeft.Position() > -FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT {
+		if bot.ColorSensorLeft.Intensity() < FOLLOW_LINE_RECOVER_FOUND_THRESHOLD {
+			leftFoundPosition = bot.DriveMotorLeft.Position()
+		}
+
+		if bot.ColorSensorLeft.Intensity() < FOLLOW_LINE_RECOVER_FOUND_THRESHOLD {
+			rightFoundPosition = bot.DriveMotorLeft.Position()
+		}
+
+		bot.CycleDelay()
+	}
+
+	targetPosition := 0
+	if leftFoundPosition == 0 && rightFoundPosition == 0 {
+		logger.Print("neither sensor found the line (ur screwed)")
+		FollowLineRecoverLine() // don't know what should happen here
+		return
+	} else if leftFoundPosition == 0 || rightFoundPosition == 0 {
+		logger.Print("one sensor found the line")
+		targetPosition = max(leftFoundPosition, rightFoundPosition)
+	} else {
+		logger.Print("both sensors found the line")
+		targetPosition = (leftFoundPosition + rightFoundPosition) / 2
+	}
+
+	logger.Print("driving back to line")
+	bot.DriveMotorLeft.Run(-FOLLOW_LINE_RECOVER_REVERSE_SPEED)
+	bot.DriveMotorRight.Run(-FOLLOW_LINE_RECOVER_REVERSE_SPEED)
+	for bot.DriveMotorLeft.Position() < targetPosition { bot.CycleDelay() }
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
