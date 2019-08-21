@@ -40,7 +40,6 @@ func (thread *Thread) Run() {
 	thread.running = true
 	thread.LastCycleTime = time.Now().UnixNano()
 
-	// FIXME: this is a busy waiting loop, maybe needs a delay?
 	for thread.alive {
 		if thread.running {
 			now := time.Now().UnixNano()

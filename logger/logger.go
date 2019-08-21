@@ -37,9 +37,9 @@ func traceCallingFunc() string {
 	n := runtime.Callers(2, pc)
 	frames := runtime.CallersFrames(pc[:n])
 	frames.Next()
-	frames.Next()
 	frame, _ := frames.Next()
-	name := strings.Split(frame.Function, ".")[1]
+	splits := strings.Split(frame.Function, ".")
+	name := splits[len(splits) - 1]
 	return name
 }
 

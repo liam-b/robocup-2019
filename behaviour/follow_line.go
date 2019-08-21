@@ -18,6 +18,7 @@ var (
 )
 
 func FollowLine() {
+	logger.Print("started following line")
 	helper.ResetPID()
 
 	leftGreenCount := 0
@@ -71,7 +72,7 @@ func FollowLineRecoverLine() {
 
 	leftFoundPosition := 0
 	rightFoundPosition := 0
-	for leftFoundPosition != 0 && rightFoundPosition != 0 && bot.DriveMotorLeft.Position() > -FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT {
+	for bot.DriveMotorLeft.Position() > -FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT {
 		if bot.ColorSensorLeft.Intensity() < FOLLOW_LINE_RECOVER_FOUND_THRESHOLD {
 			leftFoundPosition = bot.DriveMotorLeft.Position()
 		}
@@ -86,7 +87,7 @@ func FollowLineRecoverLine() {
 	targetPosition := 0
 	if leftFoundPosition == 0 && rightFoundPosition == 0 {
 		logger.Print("neither sensor found the line (ur screwed)")
-		FollowLineRecoverLine() // don't know what should happen here
+		// FollowLineRecoverLine() // don't know what should happen here
 		return
 	} else if leftFoundPosition == 0 || rightFoundPosition == 0 {
 		logger.Print("one sensor found the line")
@@ -97,9 +98,11 @@ func FollowLineRecoverLine() {
 	}
 
 	logger.Print("driving back to line")
-	bot.DriveMotorLeft.Run(-FOLLOW_LINE_RECOVER_REVERSE_SPEED)
-	bot.DriveMotorRight.Run(-FOLLOW_LINE_RECOVER_REVERSE_SPEED)
+	bot.DriveMotorLeft.Run(FOLLOW_LINE_RECOVER_REVERSE_SPEED)
+	bot.DriveMotorRight.Run(FOLLOW_LINE_RECOVER_REVERSE_SPEED)
 	for bot.DriveMotorLeft.Position() < targetPosition { bot.CycleDelay() }
+
+	logger.Print("back to line following")
 }
 
 func max(a, b int) int {
