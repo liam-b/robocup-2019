@@ -9,7 +9,7 @@ import (
 	"github.com/liam-b/robocup-2019/logger"
 	"os"
 	"runtime"
-	"fmt"
+	// "fmt"
 )
 
 var file *os.File
@@ -40,9 +40,9 @@ func Start() {
 
 	// bot.ClawMotor.RunToAbsolutePositionAndBrake(-170, 300)
 
-	logger.Print("waiting for start...")
-	var input string
-	fmt.Scanln(&input)
+	// logger.Print("waiting for start...")
+	// var input string
+	// fmt.Scanln(&input)
 
 	logger.Print("starting behaviour")
 	go behaviour.FollowLine()
@@ -51,6 +51,8 @@ func Start() {
 func Loop() {
 	bot.Update()
 	// logger.Print(bot.UltrasonicSensor.Distance())
+	// logger.Print(bot.ColorSensorLeft.Intensity(), bot.ColorSensorRight.Intensity())
+	// logger.Print(bot.ColorSensorMiddle.Intensity())
 }
 
 func Exit() {

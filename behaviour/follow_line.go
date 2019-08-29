@@ -4,17 +4,19 @@ import (
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/helper"
 	"github.com/liam-b/robocup-2019/logger"
+	"time"
 )
 
 var (
 	FOLLOW_LINE_GREEN_TURN_THRESHOLD = 12
 	FOLLOW_LINE_GREEN_TURN_TIME_LIMIT = bot.Time(50)
 
-	FOLLOW_LINE_RECOVER_LOST_THRESHOLD = 35
+	FOLLOW_LINE_RECOVER_LOST_THRESHOLD = 39
+	FOLLOW_LINE_RECOVER_LOST_MIDDLE_THRESHOLD = 24
 	FOLLOW_LINE_RECOVER_FOUND_THRESHOLD = 15
-	FOLLOW_LINE_RECOVER_LOST_TIME_LIMIT = bot.Time(300)
+	FOLLOW_LINE_RECOVER_LOST_TIME_LIMIT = bot.Time(700)
 	FOLLOW_LINE_RECOVER_REVERSE_SPEED = 150
-	FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT = 180
+	FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT = 700
 )
 
 func FollowLine() {
@@ -24,6 +26,7 @@ func FollowLine() {
 	leftGreenCount := 0
 	rightGreenCount := 0
 	lineLostCount := 0
+	waterTowerCount := 0
 	for {
 		left, right := helper.PID()
 		bot.DriveMotorLeft.Run(left)
@@ -49,7 +52,7 @@ func FollowLine() {
 			rightGreenCount /= 2
 		}
 
-		if bot.ColorSensorLeft.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD && bot.ColorSensorRight.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD {
+		if bot.ColorSensorLeft.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD && bot.ColorSensorRight.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD && bot.ColorSensorMiddle.Intensity() > FOLLOW_LINE_RECOVER_LOST_MIDDLE_THRESHOLD {
 			lineLostCount++
 			if lineLostCount > FOLLOW_LINE_RECOVER_LOST_TIME_LIMIT {
 				FollowLineRecoverLine()
@@ -57,6 +60,16 @@ func FollowLine() {
 			}
 		} else {
 			lineLostCount /= 2
+		}
+
+		if bot.UltrasonicSensor.Distance() < WATER_TOWER_VERIFY_DISTANCE {
+			waterTowerCount++
+			if waterTowerCount > WATER_TOWER_VERIFY_COUNT {
+				WaterTowerVerify()
+				waterTowerCount = 0
+			}
+		} else {
+			waterTowerCount /= 2
 		}
 
 		bot.CycleDelay()
@@ -72,7 +85,7 @@ func FollowLineRecoverLine() {
 
 	leftFoundPosition := 0
 	rightFoundPosition := 0
-	for bot.DriveMotorLeft.Position() > -FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT {
+	for bot.DriveMotorLeft.Position() > -FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT && (leftFoundPosition == 0 || rightFoundPosition == 0) {
 		if bot.ColorSensorLeft.Intensity() < FOLLOW_LINE_RECOVER_FOUND_THRESHOLD {
 			leftFoundPosition = bot.DriveMotorLeft.Position()
 		}
@@ -101,6 +114,11 @@ func FollowLineRecoverLine() {
 	bot.DriveMotorLeft.Run(FOLLOW_LINE_RECOVER_REVERSE_SPEED)
 	bot.DriveMotorRight.Run(FOLLOW_LINE_RECOVER_REVERSE_SPEED)
 	for bot.DriveMotorLeft.Position() < targetPosition { bot.CycleDelay() }
+
+	bot.DriveMotorLeft.Hold()
+	bot.DriveMotorRight.Hold()
+
+	time.Sleep(time.Second)
 
 	logger.Print("back to line following")
 }
