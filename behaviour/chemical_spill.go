@@ -336,7 +336,21 @@ func ChemicalSpillEscape() {
 		bot.CycleDelay()
 	}
 
-	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION, CHEMICAL_SPILL_RESCUE_SPEED * 2)
-	bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION, CHEMICAL_SPILL_RESCUE_SPEED * 2)
+	// bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION, CHEMICAL_SPILL_RESCUE_SPEED * 2)
+	// bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION, CHEMICAL_SPILL_RESCUE_SPEED * 2)
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(900, 100) // turn 180
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-900, 100)
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(50, 100) // go a lil bit in front
+	bot.DriveMotorRight.RunToRelativePositionAndHold(50, 100)
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(400, 100) // turn 90
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-400, 100)
+	for bot.ColorSensorMiddle.Intensity() > 15 {
+		bot.DriveMotorLeft.RunToRelativePositionAndHold(70, 50)
+		bot.DriveMotorRight.RunToRelativePositionAndHold(70, 50)
+		bot.DriveMotorLeft.RunToRelativePositionAndHold(-140, 50)
+		bot.DriveMotorRight.RunToRelativePositionAndHold(-140, 50)
+		bot.CycleDelay()
+	}
+
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 }
