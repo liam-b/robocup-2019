@@ -9,7 +9,7 @@ import (
 var (
 	GREEN_TURN_JUNCTION_SPEED = 200
 	GREEN_TURN_JUNCTION_INTENSNITY = 0.3
-	GREEN_TURN_JUNCTION_POSITION_LIMIT = 250 
+	GREEN_TURN_JUNCTION_POSITION_LIMIT = 300 
 	GREEN_TURN_DOUBLE_GREEN_INTENSITY = 11
 	GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT = bot.Time(200)
 
@@ -37,6 +37,8 @@ func GreenTurnLeft() {
 			ChemicalSpillVerify()
 			return
 		}
+
+		// logger.Print(bot.DriveMotorLeft.Position(), GREEN_TURN_JUNCTION_POSITION_LIMIT)
 
 		if bot.DriveMotorLeft.Position() > GREEN_TURN_JUNCTION_POSITION_LIMIT {
 			logger.Print("went over position limit")

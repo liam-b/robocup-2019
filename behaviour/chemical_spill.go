@@ -159,15 +159,16 @@ func ChemicalSpillSearch() {
 	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
 	bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
 
-	doLoop := true
+	triedLastDiagonal := false
 	foundCount := 0
-	for !helper.IsDriveStopped() || doLoop {
+	for {
 		logger.Print(bot.UltrasonicSensor.Distance())
 
-		if bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION {
-			bot.DriveMotorLeft.Hold()
-			bot.DriveMotorRight.Hold()
-			doLoop = false
+		if !triedLastDiagonal && bot.DriveMotorLeft.Position() < -CHEMICAL_SPILL_SEARCH_LAST_DIAGONAL_POSITION {
+			ChemicalSpillCheckCurrentPosition()
+			triedLastDiagonal = true
+			bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
+			bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
 		}
 
 		if bot.DriveMotorLeft.Position() <= -CHEMICAL_SPILL_SEARCH_ENABLE_POSITION {
@@ -179,6 +180,7 @@ func ChemicalSpillSearch() {
 			}
 
 			if foundCount > CHEMICAL_SPILL_SEARCH_FOUND_COUNT_THRESHOLD {
+				foundCount = 0
 				logger.Print("found can")
 				if ChemicalSpillAlignWithCan() {
 					return
@@ -191,8 +193,6 @@ func ChemicalSpillSearch() {
 
 		bot.CycleDelay()
 	}
-
-	ChemicalSpillCheckCurrentPosition() // should return to block and try again after this
 }
 
 func ChemicalSpillAlignWithCan() bool {
