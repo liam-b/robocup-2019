@@ -8,8 +8,8 @@ import (
 
 var (
 	GREEN_TURN_JUNCTION_SPEED = 200
-	GREEN_TURN_JUNCTION_INTENSNITY = 0.25
-	GREEN_TURN_JUNCTION_POSITION_LIMIT = 150
+	GREEN_TURN_JUNCTION_INTENSNITY = 0.3
+	GREEN_TURN_JUNCTION_POSITION_LIMIT = 250 
 	GREEN_TURN_DOUBLE_GREEN_INTENSITY = 11
 	GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT = bot.Time(200)
 
@@ -67,7 +67,7 @@ func GreenTurnRight() {
 			doubleGreenCount += 1
 		}
 
-		if doubleGreenCount > bot.Time(GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT) {
+		if doubleGreenCount > GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT {
 			ChemicalSpillVerify()
 			return
 		}
@@ -100,4 +100,6 @@ func GreenTurnCooldown() {
 
 		bot.CycleDelay()
 	}
+
+	logger.Print("out cool")
 }

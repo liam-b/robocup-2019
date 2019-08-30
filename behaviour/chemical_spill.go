@@ -14,14 +14,14 @@ var (
 	CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY = 30
 
 	chemicalSpillVerifyAlignAttemptCount = 0
-	CHEMICAL_SPILL_VERIFY_ALIGN_ATTEMPTS = 1 // 4
+	CHEMICAL_SPILL_VERIFY_ALIGN_ATTEMPTS = 4
 
 	CHEMICAL_SPILL_ENTER_SPEED = 250
 	CHEMICAL_SPILL_ENTER_POSITION = 565
 
 	CHEMICAL_SPILL_SEARCH_SPEED = 65
 	CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 200
-	CHEMICAL_SPILL_SEARCH_DISTANCE_FOUND_THRESHOLD = 4800
+	CHEMICAL_SPILL_SEARCH_DISTANCE_FOUND_THRESHOLD = 4900
 	CHEMICAL_SPILL_SEARCH_DISTANCE_LOST_THRESHOLD = 5400
 	CHEMICAL_SPILL_SEARCH_FOUND_COUNT_THRESHOLD = bot.Time(100)
 	CHEMICAL_SPILL_SEARCH_LOST_COUNT_THRESHOLD = bot.Time(200)
@@ -45,7 +45,13 @@ func ChemicalSpillVerify() {
 	logger.Print("detected chemical spill")
 	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION, CHEMICAL_SPILL_VERIFY_SPEED)
-	for !helper.IsDriveStopped() { bot.CycleDelay() }
+	for !helper.IsDriveStopped() {
+		if bot.ColorSensorLeft.Intensity() >= 31 && bot.ColorSensorLeft.Intensity() >= 31 {
+			return
+		}
+
+		bot.CycleDelay()
+	}
 
 	chemicalSpillVerifyAlignAttemptCount = 0
 	ChemicalSpillBackwardAlign()
@@ -176,6 +182,9 @@ func ChemicalSpillSearch() {
 				logger.Print("found can")
 				if ChemicalSpillAlignWithCan() {
 					return
+				} else {
+					bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
+					bot.DriveMotorRight.Run(CHEMICAL_SPILL_SEARCH_SPEED)
 				}
 			}
 		}

@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	FOLLOW_LINE_GREEN_TURN_THRESHOLD = 12
+	FOLLOW_LINE_GREEN_TURN_THRESHOLD = 9
 	FOLLOW_LINE_GREEN_TURN_TIME_LIMIT = bot.Time(50)
 
 	FOLLOW_LINE_RECOVER_LOST_THRESHOLD = 39
@@ -118,7 +118,7 @@ func FollowLineRecoverLine() {
 	bot.DriveMotorLeft.Hold()
 	bot.DriveMotorRight.Hold()
 
-	time.Sleep(time.Second)
+	time.Sleep(time.Millisecond * 400)
 
 	logger.Print("back to line following")
 }
