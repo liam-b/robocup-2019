@@ -28,6 +28,7 @@ var (
 	ColorSensorLeft   i2c.ColorSensor
 	ColorSensorMiddle i2c.ColorSensor
 	ColorSensorRight  i2c.ColorSensor
+	// ColorSensorCan    i2c.ColorSensor
 	ColorMultiplexer  i2c.Multiplexer
 	UltrasonicSensor  i2c.UltrasonicSensor
 
@@ -66,6 +67,7 @@ func Setup() {
 	ColorSensorLeft.Setup()
 	ColorSensorMiddle.Setup()
 	ColorSensorRight.Setup()
+	// ColorSensorCan.Setup()
 	UltrasonicSensor.Setup()
 
 	DriveMotorLeft.Setup()
@@ -78,6 +80,7 @@ func Update() {
 	ColorSensorLeft.Update()
 	ColorSensorMiddle.Update()
 	ColorSensorRight.Update()
+	// ColorSensorCan.Update()
 	UltrasonicSensor.Update()
 
 	DriveMotorLeft.Update()

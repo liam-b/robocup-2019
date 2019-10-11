@@ -17,6 +17,9 @@ var (
 	FOLLOW_LINE_RECOVER_LOST_TIME_LIMIT = bot.Time(700)
 	FOLLOW_LINE_RECOVER_REVERSE_SPEED = 150
 	FOLLOW_LINE_RECOVER_REVERSE_POSITION_LIMIT = 700
+
+	FOLLOW_LINE_GREEN_COLOUR_TIME_LIMIT = bot.Time(50)
+	FOLLOW_LINE_GREEN_COLOUR_THRESHOLD = 55
 )
 
 func FollowLine() {
@@ -27,30 +30,65 @@ func FollowLine() {
 	rightGreenCount := 0
 	lineLostCount := 0
 	waterTowerCount := 0
+	greenColourNotOverflowCount := 0
 	for {
+		logger.Print(bot.ColorSensorLeft.Intensity())
 		left, right := helper.PID()
 		bot.DriveMotorLeft.Run(left)
 		bot.DriveMotorRight.Run(right)
 
-		if helper.LeftGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
-			leftGreenCount++
-			if leftGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
-				GreenTurnLeft()
-				leftGreenCount = 0
+		if bot.ColorSensorLeft.Intensity() <= FOLLOW_LINE_GREEN_COLOUR_THRESHOLD && bot.ColorSensorRight.Intensity() <= FOLLOW_LINE_GREEN_COLOUR_THRESHOLD {
+			greenColourNotOverflowCount ++
+			if helper.LeftGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
+				leftGreenCount++
+				if leftGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
+					logger.Print("now we turn left")
+					logger.Print(bot.ColorSensorLeft.Intensity())
+					GreenTurnLeft()
+					leftGreenCount = 0
+				}
+			} else {
+				leftGreenCount /= 2
+			}
+	
+			if helper.RightGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
+				rightGreenCount++
+				if rightGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
+					logger.Print("now we turn right")
+					logger.Print(bot.ColorSensorRight.Intensity())
+					GreenTurnRight()
+					rightGreenCount = 0
+				}
+			} else {
+				rightGreenCount /= 2
 			}
 		} else {
-			leftGreenCount /= 2
+			greenColourNotOverflowCount /= 2
 		}
 
-		if helper.RightGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
-			rightGreenCount++
-			if rightGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
-				GreenTurnRight()
-				rightGreenCount = 0
-			}
-		} else {
-			rightGreenCount /= 2
-		}
+		// if helper.LeftGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
+		// 	leftGreenCount++
+		// 	if leftGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
+		// 		logger.Print("now we turn left")
+		// 		logger.Print(bot.ColorSensorLeft.Intensity())
+		// 		GreenTurnLeft()
+		// 		leftGreenCount = 0
+		// 	}
+		// } else {
+		// 	leftGreenCount /= 2
+		// }
+
+		// if helper.RightGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
+		// 	rightGreenCount++
+		// 	if rightGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
+		// 		logger.Print("now we turn right")
+		// 		logger.Print(bot.ColorSensorRight.Intensity())
+		// 		GreenTurnRight()
+		// 		rightGreenCount = 0
+		// 	}
+		// } else {
+		// 	rightGreenCount /= 2
+		// }
 
 		if bot.ColorSensorLeft.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD && bot.ColorSensorRight.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD && bot.ColorSensorMiddle.Intensity() > FOLLOW_LINE_RECOVER_LOST_MIDDLE_THRESHOLD {
 			lineLostCount++

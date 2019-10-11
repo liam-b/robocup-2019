@@ -1,15 +1,17 @@
 package helper
 
 const (
-  // PROPORTIONAL = 2000
-	// INTEGRAL     = 1.43
-	// DERIVATIVE  = 2950
+	// small tiles
+  	// PROPORTIONAL = 580
+	// INTEGRAL     = 1.5
+	// DERIVATIVE  = 1950
+	// base speed = 160
 
-	PROPORTIONAL = 550 //580
-	INTEGRAL     = 1.46 //1.43
-	DERIVATIVE   = 1950
+	PROPORTIONAL = 550 // 550
+	INTEGRAL     = 1.46 //1.46
+	DERIVATIVE   = 1950 //1950
 
-	BASE_SPEED       = 210
+	BASE_SPEED       = 210 // 210
 	HARD_TURN_VALUE  = 0.25
 	HARD_TURN_SPEED  = 400
 	HARD_TURN_OFFSET = 000

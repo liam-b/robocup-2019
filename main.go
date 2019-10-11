@@ -27,6 +27,7 @@ func Start() {
 	bot.ColorSensorLeft = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 4}.New()
 	bot.ColorSensorMiddle = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 3}.New()
 	bot.ColorSensorRight = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 0}.New()
+	// bot.ColorSensorCan = i2c.ColorSensor{Multiplexer: &bot.Multiplexer, Channel: 1}.New()
 	bot.UltrasonicSensor = i2c.UltrasonicSensor{}.New()
 
 	bot.DriveMotorLeft = lego.Motor{Port: lego.PORT_MA}.New()
@@ -50,6 +51,7 @@ func Start() {
 
 func Loop() {
 	bot.Update()
+	// logger.Print(bot.ColorSensorCan.Intensity())
 	// logger.Print(bot.UltrasonicSensor.Distance())
 	// logger.Print(bot.ColorSensorLeft.Intensity(), bot.ColorSensorRight.Intensity())
 	// logger.Print(bot.ColorSensorMiddle.Intensity())
