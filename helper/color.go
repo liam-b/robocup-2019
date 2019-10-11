@@ -21,6 +21,12 @@ const (
 	COLOR_WHITE = 1
 	COLOR_SILVER = 2
 	COLOR_GREEN = 3
+	COLOR_YELLOW = 4
+
+	COLOR_YELLOW_CHECK_RED = 25 // actual 26
+	COLOR_YELLOW_CHECK_GREEN = 26 // 27
+	COLOR_YELLOW_CHECK_BLUE = 15 // 14
+	COLOR_YELLOW_RG_DIFFERENCE = 5
 )
 
 func LeftColor() int {
@@ -43,6 +49,8 @@ func colorValue(red int, green int, blue int) int {
 		return COLOR_BLACK
 	} else if green > red + COLOR_GREEN_INTENSITY_DIFFERENCE && green > blue + COLOR_GREEN_INTENSITY_DIFFERENCE {
 		return COLOR_GREEN
+	} else if abs(green - red) < COLOR_YELLOW_RG_DIFFERENCE && green > blue + COLOR_GREEN_INTENSITY_DIFFERENCE {
+		return COLOR_YELLOW
 	}
 
 	return COLOR_WHITE
@@ -97,4 +105,9 @@ func ScaledSensor(value int, whiteIntensity int, blackIntensity int) float64 {
 	raw := float64(value - blackIntensity) / float64(whiteIntensity - blackIntensity)
 	return minf(maxf(0.0, raw), 1.0)
 }
-
+func abs(value int) int {
+	if value < 0 {
+		return -value
+	}
+	return value
+}

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/liam-b/robocup-2019/behaviour"
+	// "github.com/liam-b/robocup-2019/behaviour"
 	"github.com/liam-b/robocup-2019/bot"
 	"github.com/liam-b/robocup-2019/helper"
 	"github.com/liam-b/robocup-2019/io/i2c"
@@ -46,11 +46,12 @@ func Start() {
 	fmt.Scanln(&input)
 
 	logger.Print("starting behaviour")
-	go behaviour.FollowLine()
+	// go behaviour.FollowLine()
 }
 
 func Loop() {
 	bot.Update()
+	logger.Print(bot.ColorSensorMiddle.RGB())
 	// logger.Print(bot.ColorSensorCan.Intensity())
 	// logger.Print(bot.UltrasonicSensor.Distance())
 	// logger.Print(bot.ColorSensorLeft.Intensity(), bot.ColorSensorRight.Intensity())
