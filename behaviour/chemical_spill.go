@@ -18,6 +18,7 @@ var (
 
 	CHEMICAL_SPILL_ENTER_SPEED = 250
 	CHEMICAL_SPILL_ENTER_POSITION = 565
+	CHEMICAL_SPILL_ENTER_BLOCK_POSITION = 120
 
 	CHEMICAL_SPILL_SEARCH_SPEED = 65
 	CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 200
@@ -107,7 +108,18 @@ func ChemicalSpillEnter() {
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
-	if ChemicalSpillCanInGrab(false) {
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_BLOCK_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_BLOCK_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+
+	helper.CloseClaw()
+	for !helper.IsClawClosed() { bot.CycleDelay() }
+
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(-CHEMICAL_SPILL_ENTER_BLOCK_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_ENTER_BLOCK_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+
+	if ChemicalSpillCanInGrab(false, false) {
 		// ChemicalSpillRescueCan()
 		logger.Print("closing claw")
 		helper.CloseClaw()
@@ -128,7 +140,7 @@ func ChemicalSpillEnter() {
 		helper.OpenClaw()
 		for !helper.IsClawOpen() { bot.CycleDelay() }
 
-		ChemicalSpillEscape()
+		ChemicalSpillEscape() // FIXME: needs something else for multi can
 		return
 	}
 
@@ -243,7 +255,7 @@ func ChemicalSpillCheckCurrentPosition() bool {
 	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_CHECK_POSITION, CHEMICAL_SPILL_CHECK_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 
-	if ChemicalSpillCanInGrab(false) {
+	if ChemicalSpillCanInGrab(false, true) {
 		ChemicalSpillRescueCan()
 		return true
 	}
@@ -256,7 +268,7 @@ func ChemicalSpillCheckCurrentPosition() bool {
 	return false
 }
 
-func ChemicalSpillCanInGrab(doRescue bool) bool {
+func ChemicalSpillCanInGrab(doRescue bool, move bool) bool {
 	logger.Print("test grab")
 	helper.CloseClaw()
 	for !helper.IsClawClosed() { bot.CycleDelay() }
