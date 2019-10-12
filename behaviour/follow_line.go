@@ -69,29 +69,32 @@ func FollowLine() {
 		// 	}
 		// }
 		
-
-		if helper.LeftGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
-			leftGreenCount++
-			if leftGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
-				logger.Print("now we turn left")
-				logger.Print(bot.ColorSensorLeft.Intensity())
-				GreenTurnLeft()
-				leftGreenCount = 0
+		if bot.ColorSensorLeft.Intensity() <= FOLLOW_LINE_GREEN_COLOUR_THRESHOLD && bot.ColorSensorRight.Intensity() <= FOLLOW_LINE_GREEN_COLOUR_THRESHOLD {
+	
+			if helper.LeftGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
+				leftGreenCount++
+				if leftGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
+					logger.Print("now we turn left")
+					logger.Print(bot.ColorSensorLeft.Intensity())
+					GreenTurnLeft()
+					leftGreenCount = 0
+				}
+			} else {
+				leftGreenCount /= 2
 			}
-		} else {
-			leftGreenCount /= 2
-		}
 
-		if helper.RightGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
-			rightGreenCount++
-			if rightGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
-				logger.Print("now we turn right")
-				logger.Print(bot.ColorSensorRight.Intensity())
-				GreenTurnRight()
-				rightGreenCount = 0
+			if helper.RightGreen() > FOLLOW_LINE_GREEN_TURN_THRESHOLD {
+				rightGreenCount++
+				if rightGreenCount > FOLLOW_LINE_GREEN_TURN_TIME_LIMIT {
+					logger.Print("now we turn right")
+					logger.Print(bot.ColorSensorRight.Intensity())
+					GreenTurnRight()
+					rightGreenCount = 0
+				}
+			} else {
+				rightGreenCount /= 2
 			}
-		} else {
-			rightGreenCount /= 2
+
 		}
 
 		if bot.ColorSensorLeft.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD && bot.ColorSensorRight.Intensity() > FOLLOW_LINE_RECOVER_LOST_THRESHOLD && bot.ColorSensorMiddle.Intensity() > FOLLOW_LINE_RECOVER_LOST_MIDDLE_THRESHOLD {
