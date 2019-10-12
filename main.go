@@ -39,7 +39,7 @@ func Start() {
 	bot.ClawMotor.ResetPosition()
 	bot.ClawElevatorMotor.ResetPosition()
 
-	// bot.ClawMotor.RunToAbsolutePositionAndBrake(-170, 300)
+	bot.ClawMotor.RunToAbsolutePositionAndBrake(-170, 300)
 
 	logger.Print("waiting for start...")
 	var input string

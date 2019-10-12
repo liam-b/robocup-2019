@@ -36,6 +36,8 @@ func GreenTurnLeft() {
 		}
 
 		if doubleGreenCount > GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT {
+			helper.OpenClaw()
+			canCounter = 0
 			ChemicalSpillVerify()
 			return
 		}
@@ -72,6 +74,8 @@ func GreenTurnRight() {
 		}
 
 		if doubleGreenCount > GREEN_TURN_DOUBLE_GREEN_TIME_LIMIT {
+			helper.OpenClaw()
+			canCounter = 0
 			ChemicalSpillVerify()
 			return
 		}

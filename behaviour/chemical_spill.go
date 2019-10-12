@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	CHEMICAL_SPILL_VERIFY_SPEED = 80
+	CHEMICAL_SPILL_VERIFY_SPEED = 140 // 80
 	CHEMICAL_SPILL_VERIFY_OVERSHOOT_POSITION = 60
 	CHEMICAL_SPILL_VERIFY_SILVER_INTENSITY = 35
 	CHEMICAL_SPILL_VERIFY_GREEN_INTENSITY = 30
@@ -23,7 +23,7 @@ var (
 	CHEMICAL_SPILL_SEARCH_SPEED = 65
 	CHEMICAL_SPILL_SEARCH_ENABLE_POSITION = 200
 	CHEMICAL_SPILL_SEARCH_DISTANCE_FOUND_THRESHOLD = 5500
-	CHEMICAL_SPILL_SEARCH_DISTANCE_LOST_THRESHOLD = 6100
+	CHEMICAL_SPILL_SEARCH_DISTANCE_LOST_THRESHOLD = 6000
 	CHEMICAL_SPILL_SEARCH_FOUND_COUNT_THRESHOLD = bot.Time(100)
 	CHEMICAL_SPILL_SEARCH_LOST_COUNT_THRESHOLD = bot.Time(200)
 	CHEMICAL_SPILL_SEARCH_FIRST_DIAGONAL_POSITION = 150
@@ -36,10 +36,13 @@ var (
 	CHEMICAL_SPILL_CHECK_FOUND_COUNT_THRESHOLD = bot.Time(200)
 
 	CHEMICAL_SPILL_RESCUE_SPEED = 100
-	CHEMICAL_SPILL_RESCUE_BLOCK_POSITION = 305
+	CHEMICAL_SPILL_RESCUE_BLOCK_POSITION = 300
 	CHEMICAL_SPILL_RESCUE_EXIT_OFFSET = 80
 	CHEMICAL_SPILL_RESCUE_EXIT_SILVER_INTENSITY = 37
 	CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION = 500
+
+	canCounter = 0
+	CAN_COUNT_LIMIT = 2
 )
 
 func ChemicalSpillVerify() {
@@ -140,8 +143,15 @@ func ChemicalSpillEnter() {
 		helper.OpenClaw()
 		for !helper.IsClawOpen() { bot.CycleDelay() }
 
-		ChemicalSpillEscape() // FIXME: needs something else for multi can
-		return
+		helper.LowerClaw()
+		bot.DriveMotorLeft.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_BLOCK_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+		bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_BLOCK_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+		for !helper.IsDriveStopped() { bot.CycleDelay() }
+
+		// ChemicalSpillEscape()
+		// return
+
+		canCounter += 1
 	}
 
 	logger.Print("searching for can")
@@ -163,9 +173,10 @@ func ChemicalSpillSearch() {
 	}
 
 	logger.Print("checking first diagonal")
-	if ChemicalSpillCheckCurrentPosition() {
-		return
-	}
+	// if ChemicalSpillCheckCurrentPosition() {
+	// 	return
+	// }
+	ChemicalSpillCheckCurrentPosition()
 
 	logger.Print("searching for can until last diagonal")
 	bot.DriveMotorLeft.Run(-CHEMICAL_SPILL_SEARCH_SPEED)
@@ -298,6 +309,7 @@ func ChemicalSpillCanInGrab(doRescue bool, move bool) bool {
 }
 
 func ChemicalSpillRescueCan() {
+	canCounter += 1
 	logger.Print("rescuing can")
 	helper.CloseClaw()
 	for !helper.IsClawClosed() { bot.CycleDelay() }
@@ -331,7 +343,14 @@ func ChemicalSpillPlaceCanOnBlock() {
 	helper.OpenClaw()
 	for !helper.IsClawOpen() { bot.CycleDelay() }
 
-	ChemicalSpillEscape()
+	helper.LowerClaw()
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_BLOCK_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_BLOCK_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+
+	if (canCounter >= CAN_COUNT_LIMIT) {
+		ChemicalSpillEscape()
+	}
 }
 
 func ChemicalSpillEscape() {
@@ -348,8 +367,12 @@ func ChemicalSpillEscape() {
 		bot.CycleDelay()
 	}
 
-	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION, CHEMICAL_SPILL_RESCUE_SPEED * 2)
-	bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION, CHEMICAL_SPILL_RESCUE_SPEED * 2)
+	bot.DriveMotorLeft.Hold()
+	bot.DriveMotorRight.Hold()
+	time.Sleep(time.Second)
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION, CHEMICAL_SPILL_RESCUE_SPEED * 3)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION, CHEMICAL_SPILL_RESCUE_SPEED * 3)
+	// bot.DriveMotorLeft.Run(CHEMICAL_SPILL_RESCUE_SPEED * 2)
 	// bot.DriveMotorLeft.RunToRelativePositionAndHold(900, 100) // turn 180
 	// bot.DriveMotorRight.RunToRelativePositionAndHold(-900, 100)
 	// bot.DriveMotorLeft.RunToRelativePositionAndHold(50, 100) // go a lil bit in front
@@ -364,5 +387,21 @@ func ChemicalSpillEscape() {
 	// 	bot.CycleDelay()
 	// }
 
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+}
+
+func ChemicalSpillAdjacentSpill() {
+	logger.Print("adjacent")
+	helper.LowerClaw()
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(CHEMICAL_SPILL_ENTER_POSITION, CHEMICAL_SPILL_ENTER_SPEED)
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION / 2, CHEMICAL_SPILL_RESCUE_SPEED * 2)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(-CHEMICAL_SPILL_RESCUE_EXIT_SPIN_POSITION / 2, CHEMICAL_SPILL_RESCUE_SPEED * 2)
+	for !helper.IsDriveStopped() { bot.CycleDelay() }
+
+	bot.DriveMotorLeft.RunToRelativePositionAndHold(1000, CHEMICAL_SPILL_ENTER_SPEED)
+	bot.DriveMotorRight.RunToRelativePositionAndHold(1000, CHEMICAL_SPILL_ENTER_SPEED)
 	for !helper.IsDriveStopped() { bot.CycleDelay() }
 }
